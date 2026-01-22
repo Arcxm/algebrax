@@ -1,6 +1,6 @@
 # Vec3
 
-The `Vec3` class represents a vector in $ \mathbb{R}^3 $.
+The `Vec3` class represents a vector in $\mathbb{R}^3$.
 
 A 3D vector consists of 3 components: $x$, $y$ and $z$.
 
