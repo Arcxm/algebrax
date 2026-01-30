@@ -116,6 +116,8 @@ class Vec3:
         """
         Calculates the dot-product of this Vec3 with another Vec3.
 
+            (x_1, y_1, z_1) * (x_2, y_2, z_2) = x_1 * x_2 + y_1 * y_2 + z_1 * z_2
+
         Parameters:
             other (Vec3): other Vec3
         
@@ -127,6 +129,8 @@ class Vec3:
     def cross(self: 'Vec3', other: 'Vec3') -> 'Vec3':
         """
         Calculates the cross-product of this Vec3 with another Vec3.
+
+            (x_1, y_1, z_1) x (x_2, y_2, z_2) = (y_1 * z_2 - z_1 * y_2, z_1 * x_2 - x_1 * z_2, x_1 * y_2 - y_1 * x_2)
 
         Parameters:
             other (Vec3): other Vec3
