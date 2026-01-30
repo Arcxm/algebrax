@@ -2217,7 +2217,9 @@ class Quat:
         """
         Helper function that creates a rotation quaternion.
         
-            e^(v * phi) = cos(phi) + v * sin(phi)
+            e^(v * phi/2) = cos(phi/2) + v * sin(phi/2)
+        
+        Note that phi is halved because the full rotation is applied by p' = q * p * q*.
 
         Parameters:
             vec (Vec3): The rotation axis with length 1 (normalized)
@@ -2226,8 +2228,8 @@ class Quat:
         Returns:
             Quat: The rotation quaternion that rotates around the given axis with the specified angle
         """
-        q = sin(phi) * Quat.from_vec3(vec)
-        return cos(phi) + q
+        q = sin(phi / 2) * Quat.from_vec3(vec)
+        return cos(phi / 2) + q
 
 class SplitQuat:
     """
