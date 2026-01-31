@@ -2051,6 +2051,16 @@ class Quat:
         """
         return sqrt(self.x**2 + self.y**2 + self.z**2)
 
+    def normalize(self: 'Quat') -> 'Quat':
+        """
+        Normalizes the quaternion so that its length equals 1.
+
+        Returns:
+            Quat: The same quaternion with length 1
+        """
+        n = self.norm()
+        return Quat(self.w / n, self.x / n, self.y / n, self.z / n)
+
     def inverse(self: 'Quat') -> 'Quat':
         """
         Calculates the inverse of this quaternion.
@@ -2230,6 +2240,31 @@ class Quat:
         """
         q = sin(phi / 2) * Quat.from_vec3(vec)
         return cos(phi / 2) + q
+    
+    @staticmethod
+    def axis_and_angle(q: 'Quat') -> tuple[Vec3, float]:
+        """
+        Extracts rotation axis and angle from a unit quaternion.
+
+        If q is not normalized, the result has no geometric meaning and acos may raise a ValueError.
+
+        Parameters:
+            q (Quat): The quaternion with length 1 (normalized)
+        
+        Returns:
+            (Vec3, float): The rotation axis and angle the quaternion represents
+        
+        Raises:
+            ValueError: If the quaternion represents an identity rotation where axis choice would be arbitrary
+        """
+        angle = 2 * acos(q.w)
+        s = sqrt(1 - q.w * q.w)
+
+        if s == 0:
+            raise ValueError("Rotation angle is 0 or 2*pi (rotation is the identity), axis choice would be arbitrary")
+        else:
+            axis = Vec3(q.x, q.y, q.z) * (1 / s)
+            return axis, angle
 
 class SplitQuat:
     """
