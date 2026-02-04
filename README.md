@@ -19,7 +19,7 @@ Also see the Docstrings in the code itself as they contain the formulas used and
 | --- | --- |
 | 2D | [Dual numbers](Documentation/Duals.md), [Split-complex (including idempotent basis)](Documentation/SplitComplex+SplitComplexIdempotent.md) |
 | 3D | [Vec3 (utility for quaternions)](Documentation/Vec3.md) |
-| 4D | [Dual complex](Documentation/Duals.md), [Dual split-complex](Documentation/Duals.md), [HyperDual (2nd order duals)](Documentation/HyperDuals.md), Quaternions, Split-quaternions |
+| 4D | [Dual complex](Documentation/Duals.md), [Dual split-complex](Documentation/Duals.md), [HyperDual (2nd order duals)](Documentation/HyperDuals.md), BiComplex, Quaternions, Split-quaternions |
 | 8D | [Complex hyperduals](Documentation/HyperDuals.md), Dual quaternions, Dual split-quaternions |
 
 Each class implements ([Common Interface Doc](Documentation/Common.md)):
@@ -36,7 +36,7 @@ Please note that non-commutative algebras do not implement `(r)truediv` and requ
 
 ## Packages
 
-This collection is split into 4 packages.
+This collection is split into 5 packages.
 
 ### dual
 
@@ -70,7 +70,12 @@ Included are the Split-quaternions and the Dual split-quaternions.
 
 Split-quaternions extend quaternions to Minkowski space, allowing representation of rotations and boosts in a relativistic context.
 
+### bicomplex
+
+The `bicomplex` package contains the bicomplex numbers.
+
 ## TODO / Future
 
-- Documentation for `Quat`, `SplitQuat`, `DualQuat` and `DualSplitQuat`
+- Documentation for `BiComplex`, `Quat`, `SplitQuat`, `DualQuat` and `DualSplitQuat`
+- Idempotent basis for `BiComplex`
 - More algebras (e.g. Grassmann)

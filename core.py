@@ -1857,6 +1857,379 @@ class HyperDualComplex:
             else:
                 return HyperDualComplex.exp((1 / n) * HyperDualComplex.log(z))
 
+class BiComplex:
+    """
+    A class representing a bicomplex number.
+
+    A bicomplex number is a number of the form
+        z1 + z2 * j
+    with z1, z2 in C and j^2 = -1.
+
+    Attributes:
+        z1 (complex): 1st complex component
+        z2 (complex): 2nd complex component
+    """
+
+    def __init__(self: 'BiComplex', z1: complex, z2: complex) -> 'BiComplex':
+        """
+        Initializes a new bicomplex number with the given components.
+
+        Parameters:
+            z1 (complex): 1st complex component
+            z2 (complex): 2nd complex component
+        
+        Returns:
+            BiComplex: The new bicomplex number
+        """
+        self.z1 = z1
+        self.z2 = z2
+    
+    def __str__(self: 'BiComplex') -> str:
+        return f"({self.z1}, {self.z2})"
+    
+    def __repr__(self: 'BiComplex') -> str:
+        return f"BiComplex({self.z1}, {self.z2})"
+    
+    def __eq__(self: 'BiComplex', rhs) -> bool:
+        if isinstance(rhs, (int, float, complex)):
+            return (self.z1 == rhs and self.z2 == 0)
+        elif isinstance(rhs, BiComplex):
+            return (self.z1 == rhs.z1 and self.z2 == rhs.z2)
+        else:
+            return NotImplemented
+    
+    def __ne__(self: 'BiComplex', rhs) -> bool:
+        eq = self.__eq__(rhs)
+        return NotImplemented if eq is NotImplemented else not eq
+    
+    def __abs__(self: 'BiComplex') -> complex:
+        return self.norm()
+    
+    def __neg__(self: 'BiComplex') -> 'BiComplex':
+        return BiComplex(-self.z1, -self.z2)
+    
+    def __add__(self: 'BiComplex', rhs) -> 'BiComplex':
+        if isinstance(rhs, (int, float, complex)):
+            return BiComplex(self.z1 + rhs, self.z2)
+        elif isinstance(rhs, BiComplex):
+            return BiComplex(self.z1 + rhs.z1, self.z2 + rhs.z2)
+        else:
+            return NotImplemented
+    
+    def __radd__(self: 'BiComplex', lhs) -> 'BiComplex':
+        if isinstance(lhs, (int, float, complex)):
+            return BiComplex(lhs + self.z1, self.z2)
+        elif isinstance(lhs, BiComplex):
+            return BiComplex(lhs.z1 + self.z1, lhs.z2 + self.z2)
+        else:
+            return NotImplemented
+    
+    def __sub__(self: 'BiComplex', rhs) -> 'BiComplex':
+        if isinstance(rhs, (int, float, complex)):
+            return BiComplex(self.z1 - rhs, self.z2)
+        elif isinstance(rhs, BiComplex):
+            return BiComplex(self.z1 - rhs.z1, self.z2 - rhs.z2)
+        else:
+            return NotImplemented
+    
+    def __rsub__(self: 'BiComplex', lhs) -> 'BiComplex':
+        if isinstance(lhs, (int, float, complex)):
+            return BiComplex(lhs - self.z1, -self.z2)
+        elif isinstance(lhs, BiComplex):
+            return BiComplex(lhs.z1 - self.z1, lhs.z2 - self.z2)
+        else:
+            return NotImplemented
+    
+    def __mul__(self: 'BiComplex', rhs) -> 'BiComplex':
+        if isinstance(rhs, (int, float, complex)):
+            return BiComplex(self.z1 * rhs, self.z2 * rhs)
+        elif isinstance(rhs, BiComplex):
+            return BiComplex(
+                self.z1 * rhs.z1 - self.z2 * rhs.z2,
+                self.z1 * rhs.z2 + self.z2 * rhs.z1
+            )
+        else:
+            return NotImplemented
+    
+    def __rmul__(self: 'BiComplex', lhs) -> 'BiComplex':
+        if isinstance(lhs, (int, float, complex)):
+            return BiComplex(lhs * self.z1, lhs * self.z2)
+        elif isinstance(lhs, BiComplex):
+            return BiComplex(
+                lhs.z1 * self.z1 - lhs.z2 * self.z2,
+                lhs.z1 * self.z2 + lhs.z2 * self.z1
+            )
+        else:
+            return NotImplemented
+    
+    def __truediv__(self: 'BiComplex', rhs) -> 'BiComplex':
+        if isinstance(rhs, (int, float, complex)):
+            return BiComplex(self.z1 / rhs, self.z2 / rhs)
+        elif isinstance(rhs, BiComplex):
+            return BiComplex(
+                self.z1 * rhs.z1 + self.z2 * rhs.z2,
+                self.z2 * rhs.z1 - self.z1 * rhs.z2
+            ) / (rhs.z1**2 + rhs.z2**2)
+        else:
+            return NotImplemented
+    
+    def __rtruediv__(self: 'BiComplex', lhs) -> 'BiComplex':
+        if isinstance(lhs, (int, float, complex)):
+            return BiComplex(
+                lhs * self.z1,
+                -lhs * self.z2
+            ) / (self.z1**2 + self.z2**2)
+        elif isinstance(lhs, BiComplex):
+            return BiComplex(
+                lhs.z1 * self.z1 + lhs.z2 * self.z2,
+                lhs.z2 * self.z1 - lhs.z1 * self.z2
+            ) / (self.z1**2 + self.z2**2)
+        else:
+            return NotImplemented
+    
+    def __pow__(self: 'BiComplex', exp) -> 'BiComplex':
+        if isinstance(exp, int):
+            Z = BiComplex(1, 0)
+
+            if exp == 0:
+                return Z
+            
+            mul = self if exp > 0 else (1 / self)
+
+            for _ in range(abs(exp)):
+                Z *= mul
+            return Z
+        elif isinstance(exp, complex):
+            Z = BiComplex(exp, 0)
+            return self**Z
+        elif isinstance(exp, BiComplex):
+            if self == 0 or self.norm() == 0:
+                raise ValueError("Pow undefined: base bicomplex number requires Z != 0 and |Z| != 0")
+            else:
+                return BiComplex.exp(exp * BiComplex.log(self))
+        else:
+            return NotImplemented
+    
+    def __rpow__(self: 'BiComplex', base) -> 'BiComplex':
+        if isinstance(base, (int, float, complex)):
+            if base == 0:
+                raise ValueError("Pow undefined: base requires x != 0")
+            else:
+                Z = BiComplex(base, 0)
+                return Z**self
+        elif isinstance(base, BiComplex):
+            if base == 0 or base.norm() == 0:
+                raise ValueError("Pow undefined: base bicomplex number requires Z != 0 and |Z| != 0")
+            else:
+                return base**self
+        else:
+            return NotImplemented
+
+    def conj(self: 'BiComplex') -> 'BiComplex':
+        """
+        Returns the conjugate of this bicomplex number.
+
+        The conjugate of a bicomplex number
+            z1 + z2 * j
+        is
+            z1 - z2 * j
+
+        Returns:
+            BiComplex: The conjugate of this bicomplex number
+        """
+        return BiComplex(self.z1, -self.z2)
+    
+    def norm(self: 'BiComplex') -> complex:
+        """
+        Calculates the norm of this bicomplex number.
+        
+            sqrt(z1^2 + z2^2)
+
+        Returns:
+            complex: The norm of this bicomplex number
+        """
+        return cm.sqrt(self.z1**2 + self.z2**2)
+    
+    def inverse(self: 'BiComplex') -> 'BiComplex':
+        """
+        Calculates the inverse of this bicomplex number.
+
+            Z* / |Z|^2
+        
+        Returns:
+            BiComplex: The inverse of this bicomplex number
+        """
+        return self.conj() / self.norm()**2
+    
+    @staticmethod
+    def I() -> 'BiComplex':
+        """
+        Returns
+            (0 + 1 * i) + (0 + 0 * i) * j
+        
+        Returns:
+            BiComplex: i
+        """
+        return BiComplex(1j, 0)
+    
+    @staticmethod
+    def J() -> 'BiComplex':
+        """
+        Returns
+            (0 + 0 * i) + (1 + 0 * i) * j
+        
+        Returns:
+            BiComplex: j
+        """
+        return BiComplex(0, 1)
+    
+    @staticmethod
+    def K() -> 'BiComplex':
+        """
+        Returns
+            (0 + 0 * i) + (0 + 1 * i) * j
+        
+        Returns:
+            BiComplex: k
+        """
+        return BiComplex(0, 1j)
+
+    @staticmethod
+    def expI(x: float) -> 'BiComplex':
+        """
+        Calculates e to the power of i * x.
+
+            e^(i * x) = cos(x) + sin(x) * i
+        
+        Parameters:
+            x (float): coefficient of i
+        
+        Returns:
+            BiComplex: The bicomplex number representing e^(i * x)
+        """
+        return cos(x) + BiComplex.I() * sin(x)
+
+    @staticmethod
+    def expJ(x: float) -> 'BiComplex':
+        """
+        Calculates e to the power of j * x.
+
+            e^(j * x) = cos(x) + sin(x) * j
+        
+        Parameters:
+            x (float): coefficient of j
+        
+        Returns:
+            BiComplex: The bicomplex number representing e^(j * x)
+        """
+        return cos(x) + BiComplex.J() * sin(x)
+    
+    @staticmethod
+    def expK(x: float) -> 'BiComplex':
+        """
+        Calculates e to the power of k * x.
+
+            e^(k * x) = cosh(x) + sinh(x) * k
+        
+        Parameters:
+            x (float): coefficient of k
+        
+        Returns:
+            BiComplex: The bicomplex number representing e^(k * x)
+        """
+        return cosh(x) + BiComplex.K() * sinh(x)
+
+    @staticmethod
+    def exp(Z: 'BiComplex') -> 'BiComplex':
+        """
+        Calculates e to the power of a bicomplex number.
+
+            e^(z1 + z2 * j) = e^z1 * (cos(z2) + sin(z2) * j)
+        
+        Parameters:
+            Z (BiComplex): The bicomplex number
+        
+        Returns:
+            BiComplex: e raised to the power of the bicomplex number
+        """
+        return cm.exp(Z.z1) * (cm.cos(Z.z2) + BiComplex.J() * cm.sin(Z.z2))
+
+    @staticmethod
+    def log(Z: 'BiComplex') -> 'BiComplex':
+        """
+        Calculates the logarithm of a bicomplex number.
+        
+            log(z1 + z2 * j) = log(|Z|) + (-i * log((z1 + i * z2) / |Z|)) * j
+
+        Which is only defined when |Z| != 0.
+        
+        Parameters:
+            Z (BiComplex): The bicomplex number
+
+        Returns:
+            BiComplex: The logarithm of the bicomplex number
+        """
+        n = Z.norm()
+        if n != 0:
+            z1 = cm.log(n)
+            z2 = -1j * cm.log((Z.z1 + 1j * Z.z2) / n)
+            return BiComplex(z1, z2)
+        else:
+            raise ValueError("Log undefined: requires |Z| != 0")
+
+    @staticmethod
+    def sqrt(Z: 'BiComplex') -> 'BiComplex':
+        """
+        Calculates the square root of a bicomplex number.
+
+            sqrt(Z) = exp((1 / 2) * log(Z))
+        
+        Which is only defined when Z = 0 or |Z| != 0.
+        
+        Parameters:
+            Z (BiComplex): The bicomplex number
+        
+        Returns:
+            BiComplex: The square root of the bicomplex number
+        """
+        if Z == 0:
+            return BiComplex(0, 0)
+        
+        if Z.norm() == 0:
+            raise ValueError("Sqrt undefined: requires |Z| != 0")
+        else:
+            return BiComplex.exp(.5 * BiComplex.log(Z))
+
+    @staticmethod
+    def root(n: int, Z: 'BiComplex') -> 'BiComplex':
+        """
+        Calculates the n-th root of a bicomplex number.
+
+            root(n, Z) = exp((1 / n) * log(Z))
+        
+        Which is only defined when Z = 0 or |Z| != 0.
+
+        Expects n > 0.
+        
+        Parameters:
+            Z (BiComplex): The bicomplex number
+        
+        Returns:
+            BiComplex: The n-th root of the bicomplex number
+        """
+        if Z == 0:
+            return BiComplex(0, 0)
+        
+        if n <= 0:
+            raise ValueError("Root: expected n > 0")
+        elif n == 1:
+            return Z
+        else:
+            if Z.norm() == 0:
+                raise ValueError("Root undefined: requires |Z| != 0")
+            else:
+                return BiComplex.exp((1 / n) * BiComplex.log(Z))
+
 class Quat:
     """
     A class representing a quaternion.
