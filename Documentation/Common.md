@@ -24,13 +24,13 @@ An object of class C can be compared with:
 - a class D that is a component of C ("real" component, eg. `Quat` in `DualQuat`)
 - another object of class C
 
-Note that `SplitComplex` and `SplitComplexIdempotent` allow mixed comparison (convert under the hood).
+Note that `SplitComplex` and `SplitComplexIdempotent` as well as `BiComplex` and `BiComplexIdempotent` allow mixed comparison (convert under the hood).
 
 ## Arithmetic
 
 `__neg__`, `__add__`, `__sub__`, `__mul__`, `__truediv__` and `__pow__` as well as their right counterparts (e.g. `__rsub__`) behave as expected.
 
-Again `SplitComplex` and `SplitComplexIdempotent` allow mixed arithmetic, returning an object of the type of the left-hand operand.
+Again `SplitComplex` and `SplitComplexIdempotent` as well as `BiComplex` and `BiComplexIdempotent` allow mixed arithmetic, returning an object of the type of the left-hand operand.
 
 Please note that non-commutative algebras do not implement `__truediv__` as well as `__rtruediv__` so you have to use multiplication with the `inverse` for clarity (might change in the future).
 

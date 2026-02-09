@@ -1,3 +1,3 @@
-from .core import BiComplex
+from .core import BiComplex, BiComplexIdempotent
 
-__all__ = ["BiComplex"]
+__all__ = ["BiComplex", "BiComplexIdempotent"]

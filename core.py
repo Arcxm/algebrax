@@ -1859,9 +1859,10 @@ class HyperDualComplex:
 
 class BiComplex:
     """
-    A class representing a bicomplex number.
+    A class representing a bicomplex number in its canonical basis.
+    See BiComplexIdempotent for the idempotent (diagonal) basis.
 
-    A bicomplex number is a number of the form
+    A bicomplex number (canonical basis) is a number of the form
         z1 + z2 * j
     with z1, z2 in C and j^2 = -1.
 
@@ -1895,6 +1896,9 @@ class BiComplex:
             return (self.z1 == rhs and self.z2 == 0)
         elif isinstance(rhs, BiComplex):
             return (self.z1 == rhs.z1 and self.z2 == rhs.z2)
+        elif isinstance(rhs, BiComplexIdempotent):
+            Zrhs = rhs.to_bicomplex()
+            return (self.z1 == Zrhs.z1 and self.z2 == Zrhs.z2)
         else:
             return NotImplemented
     
@@ -1913,6 +1917,9 @@ class BiComplex:
             return BiComplex(self.z1 + rhs, self.z2)
         elif isinstance(rhs, BiComplex):
             return BiComplex(self.z1 + rhs.z1, self.z2 + rhs.z2)
+        elif isinstance(rhs, BiComplexIdempotent):
+            Zrhs = rhs.to_bicomplex()
+            return BiComplex(self.z1 + Zrhs.z1, self.z2 + Zrhs.z2)
         else:
             return NotImplemented
     
@@ -1921,6 +1928,9 @@ class BiComplex:
             return BiComplex(lhs + self.z1, self.z2)
         elif isinstance(lhs, BiComplex):
             return BiComplex(lhs.z1 + self.z1, lhs.z2 + self.z2)
+        elif isinstance(lhs, BiComplexIdempotent):
+            Zlhs = lhs.to_bicomplex()
+            return BiComplex(Zlhs.z1 + self.z2, Zlhs.z2 + self.z2)
         else:
             return NotImplemented
     
@@ -1929,6 +1939,9 @@ class BiComplex:
             return BiComplex(self.z1 - rhs, self.z2)
         elif isinstance(rhs, BiComplex):
             return BiComplex(self.z1 - rhs.z1, self.z2 - rhs.z2)
+        elif isinstance(rhs, BiComplexIdempotent):
+            Zrhs = rhs.to_bicomplex()
+            return BiComplex(self.z1 - Zrhs.z1, self.z2 - Zrhs.z2)
         else:
             return NotImplemented
     
@@ -1937,6 +1950,9 @@ class BiComplex:
             return BiComplex(lhs - self.z1, -self.z2)
         elif isinstance(lhs, BiComplex):
             return BiComplex(lhs.z1 - self.z1, lhs.z2 - self.z2)
+        elif isinstance(lhs, BiComplexIdempotent):
+            Zlhs = lhs.to_bicomplex()
+            return BiComplex(Zlhs.z1 - self.z2, Zlhs.z2 - self.z2)
         else:
             return NotImplemented
     
@@ -1948,6 +1964,9 @@ class BiComplex:
                 self.z1 * rhs.z1 - self.z2 * rhs.z2,
                 self.z1 * rhs.z2 + self.z2 * rhs.z1
             )
+        elif isinstance(rhs, BiComplexIdempotent):
+            Zrhs = rhs.to_bicomplex()
+            return self * Zrhs
         else:
             return NotImplemented
     
@@ -1959,6 +1978,9 @@ class BiComplex:
                 lhs.z1 * self.z1 - lhs.z2 * self.z2,
                 lhs.z1 * self.z2 + lhs.z2 * self.z1
             )
+        elif isinstance(lhs, BiComplexIdempotent):
+            Zlhs = lhs.to_bicomplex()
+            return Zlhs * self
         else:
             return NotImplemented
     
@@ -1970,6 +1992,9 @@ class BiComplex:
                 self.z1 * rhs.z1 + self.z2 * rhs.z2,
                 self.z2 * rhs.z1 - self.z1 * rhs.z2
             ) / (rhs.z1**2 + rhs.z2**2)
+        elif isinstance(rhs, BiComplexIdempotent):
+            Zrhs = rhs.to_bicomplex()
+            return self / Zrhs
         else:
             return NotImplemented
     
@@ -1984,6 +2009,9 @@ class BiComplex:
                 lhs.z1 * self.z1 + lhs.z2 * self.z2,
                 lhs.z2 * self.z1 - lhs.z1 * self.z2
             ) / (self.z1**2 + self.z2**2)
+        elif isinstance(lhs, BiComplexIdempotent):
+            Zlhs = lhs.to_bicomplex()
+            return Zlhs / self
         else:
             return NotImplemented
     
@@ -2007,6 +2035,9 @@ class BiComplex:
                 raise ValueError("Pow undefined: base bicomplex number requires Z != 0 and |Z| != 0")
             else:
                 return BiComplex.exp(exp * BiComplex.log(self))
+        elif isinstance(exp, BiComplexIdempotent):
+            Zexp = exp.to_bicomplex()
+            return self**Zexp
         else:
             return NotImplemented
     
@@ -2060,6 +2091,24 @@ class BiComplex:
             BiComplex: The inverse of this bicomplex number
         """
         return self.conj() / self.norm()**2
+    
+    def to_idempotent(self: 'BiComplex') -> 'BiComplexIdempotent':
+        """
+        Converts this bicomplex number from the canonical basis to the idempotent basis.
+
+            z1 + z2 * j
+        becomes
+            x * e + y * e*
+        
+        with
+            x = z1 + i * z2
+        and
+            y = z1 - i * z2
+
+        Returns:
+            BiComplexIdempotent: The same bicomplex number but in the idempotent basis
+        """
+        return BiComplexIdempotent(self.z1 + 1j * self.z2, self.z1 - 1j * self.z2)
     
     @staticmethod
     def I() -> 'BiComplex':
@@ -2147,7 +2196,7 @@ class BiComplex:
             e^(z1 + z2 * j) = e^z1 * (cos(z2) + sin(z2) * j)
         
         Parameters:
-            Z (BiComplex): The bicomplex number
+            Z (BiComplex): The bicomplex number in its canonical basis
         
         Returns:
             BiComplex: e raised to the power of the bicomplex number
@@ -2164,7 +2213,7 @@ class BiComplex:
         Which is only defined when |Z| != 0.
         
         Parameters:
-            Z (BiComplex): The bicomplex number
+            Z (BiComplex): The bicomplex number in its canonical basis
 
         Returns:
             BiComplex: The logarithm of the bicomplex number
@@ -2187,7 +2236,7 @@ class BiComplex:
         Which is only defined when Z = 0 or |Z| != 0.
         
         Parameters:
-            Z (BiComplex): The bicomplex number
+            Z (BiComplex): The bicomplex number in its canonical basis
         
         Returns:
             BiComplex: The square root of the bicomplex number
@@ -2212,7 +2261,7 @@ class BiComplex:
         Expects n > 0.
         
         Parameters:
-            Z (BiComplex): The bicomplex number
+            Z (BiComplex): The bicomplex number in its canonical basis
         
         Returns:
             BiComplex: The n-th root of the bicomplex number
@@ -2229,6 +2278,348 @@ class BiComplex:
                 raise ValueError("Root undefined: requires |Z| != 0")
             else:
                 return BiComplex.exp((1 / n) * BiComplex.log(Z))
+
+class BiComplexIdempotent:
+    """
+    A class representing a bicomplex number in its idempotent (diagonal) basis.
+    See BiComplex for the canonical basis.
+
+    The idempotent basis are:
+        e  = 1/2 * (1 - k)
+        e* = 1/2 * (1 + k)
+        
+    These satisfy the properties:
+        e^2 = e,    e*^2 = e*,    e * e* = 0,    e + e* = 1
+
+    A bicomplex number (idempotent basis) is a number of the form
+        a * e + b * e*
+    with a, b in C.
+
+    Attributes:
+        a (complex): coefficient of e
+        b (complex): coefficient of e*
+    """
+
+    def __init__(self: 'BiComplexIdempotent', a: complex, b: complex) -> 'BiComplexIdempotent':
+        """
+        Initializes a new bicomplex number with the given coefficients.
+
+        Parameters:
+            a (complex): coefficient of e
+            b (complex): coefficient of e*
+        
+        Returns:
+            BiComplexIdempotent: The new bicomplex number
+        """
+        self.a = a
+        self.b = b
+    
+    def __str__(self: 'BiComplexIdempotent') -> str:
+        return f"({self.a}, {self.b})"
+    
+    def __repr__(self: 'BiComplexIdempotent') -> str:
+        return f"BiComplexIdempotent({self.a}, {self.b})"
+    
+    def __eq__(self: 'BiComplexIdempotent', rhs) -> bool:
+        if isinstance(rhs, (int, float, complex)):
+            Zrhs = BiComplex(rhs, 0).to_idempotent()
+            return (self.a == Zrhs.a and self.b == Zrhs.b)
+        elif isinstance(rhs, BiComplexIdempotent):
+            return (self.a == rhs.a and self.b == rhs.b)
+        elif isinstance(rhs, BiComplex):
+            Zrhs = rhs.to_idempotent()
+            return (self.a == Zrhs.a and self.b == Zrhs.b)
+        else:
+            return NotImplemented
+    
+    def __ne__(self: 'BiComplexIdempotent', rhs) -> bool:
+        eq = self.__eq__(rhs)
+        return NotImplemented if eq is NotImplemented else not eq
+    
+    def __abs__(self: 'BiComplexIdempotent') -> complex:
+        return self.norm()
+    
+    def __neg__(self: 'BiComplexIdempotent') -> 'BiComplexIdempotent':
+        return BiComplexIdempotent(-self.a, -self.b)
+    
+    def __add__(self: 'BiComplexIdempotent', rhs) -> 'BiComplexIdempotent':
+        if isinstance(rhs, (int, float, complex)):
+            return BiComplexIdempotent(self.a + rhs, self.b + rhs)
+        elif isinstance(rhs, BiComplexIdempotent):
+            return BiComplexIdempotent(self.a + rhs.a, self.b + rhs.b)
+        elif isinstance(rhs, BiComplex):
+            Zrhs = rhs.to_idempotent()
+            return BiComplexIdempotent(self.a + Zrhs.a, self.b + Zrhs.b)
+        else:
+            return NotImplemented
+    
+    def __radd__(self: 'BiComplexIdempotent', lhs) -> 'BiComplexIdempotent':
+        if isinstance(lhs, (int, float, complex)):
+            return BiComplexIdempotent(lhs + self.a, lhs + self.b)
+        elif isinstance(lhs, BiComplexIdempotent):
+            return BiComplexIdempotent(lhs.a + self.a, lhs.b + self.b)
+        elif isinstance(lhs, BiComplex):
+            Zlhs = lhs.to_idempotent()
+            return BiComplexIdempotent(Zlhs.a + self.a, Zlhs.b + self.b)
+        else:
+            return NotImplemented
+
+    def __sub__(self: 'BiComplexIdempotent', rhs) -> 'BiComplexIdempotent':
+        if isinstance(rhs, (int, float, complex)):
+            return BiComplexIdempotent(self.a - rhs, self.b - rhs)
+        elif isinstance(rhs, BiComplexIdempotent):
+            return BiComplexIdempotent(self.a - rhs.a, self.b - rhs.b)
+        elif isinstance(rhs, BiComplex):
+            Zrhs = rhs.to_idempotent()
+            return BiComplexIdempotent(self.a - Zrhs.a, self.b - Zrhs.b)
+        else:
+            return NotImplemented
+
+    def __rsub__(self: 'BiComplexIdempotent', lhs) -> 'BiComplexIdempotent':
+        if isinstance(lhs, (int, float, complex)):
+            return BiComplexIdempotent(lhs - self.a, lhs - self.b)
+        elif isinstance(lhs, BiComplexIdempotent):
+            return BiComplexIdempotent(lhs.a - self.a, lhs.b - self.b)
+        elif isinstance(lhs, BiComplex):
+            Zlhs = lhs.to_idempotent()
+            return BiComplexIdempotent(Zlhs.a - self.a, Zlhs.b - self.b)
+        else:
+            return NotImplemented
+
+    def __mul__(self: 'BiComplexIdempotent', rhs) -> 'BiComplexIdempotent':
+        if isinstance(rhs, (int, float, complex)):
+            return BiComplexIdempotent(self.a * rhs, self.b * rhs)
+        elif isinstance(rhs, BiComplexIdempotent):
+            return BiComplexIdempotent(self.a * rhs.a, self.b * rhs.b)
+        elif isinstance(rhs, BiComplex):
+            Zrhs = rhs.to_idempotent()
+            return BiComplexIdempotent(self.a * Zrhs.a, self.b * Zrhs.b)
+        else:
+            return NotImplemented
+
+    def __rmul__(self: 'BiComplexIdempotent', lhs) -> 'BiComplexIdempotent':
+        if isinstance(lhs, (int, float, complex)):
+            return BiComplexIdempotent(lhs * self.a, lhs * self.b)
+        elif isinstance(lhs, BiComplexIdempotent):
+            return BiComplexIdempotent(lhs.a * self.a, lhs.b * self.b)
+        elif isinstance(lhs, BiComplex):
+            Zlhs = lhs.to_idempotent()
+            return BiComplexIdempotent(Zlhs.a * self.a, Zlhs.b * self.b)
+        else:
+            return NotImplemented
+
+    def __truediv__(self: 'BiComplexIdempotent', rhs) -> 'BiComplexIdempotent':
+        if isinstance(rhs, (int, float, complex)):
+            return BiComplexIdempotent(self.a / rhs, self.b / rhs)
+        elif isinstance(rhs, BiComplexIdempotent):
+            return BiComplexIdempotent(self.a / rhs.a, self.b / rhs.b)
+        elif isinstance(rhs, BiComplex):
+            Zrhs = rhs.to_idempotent()
+            return BiComplexIdempotent(self.a / Zrhs.a, self.b / Zrhs.b)
+        else:
+            return NotImplemented
+    
+    def __rtruediv__(self: 'BiComplexIdempotent', lhs) -> 'BiComplexIdempotent':
+        if isinstance(lhs, (int, float, complex)):
+            return BiComplexIdempotent(lhs / self.a, lhs / self.b)
+        elif isinstance(lhs, BiComplexIdempotent):
+            return BiComplexIdempotent(lhs.a / self.a, lhs.b / self.b)
+        elif isinstance(lhs, BiComplex):
+            Zlhs = lhs.to_idempotent()
+            return BiComplexIdempotent(Zlhs.a / self.a, Zlhs.b / self.b)
+        else:
+            return NotImplemented
+
+    def __pow__(self: 'BiComplexIdempotent', exp) -> 'BiComplexIdempotent':
+        if isinstance(exp, int):
+            Z = BiComplexIdempotent(1, 1)
+
+            if exp == 0:
+                return Z
+            
+            mul = self if exp > 0 else self.inverse()
+
+            for _ in range(abs(exp)):
+                Z *= mul
+            return Z
+        elif isinstance(exp, BiComplexIdempotent):
+            if self.a == 0 or self.b == 0:
+                raise ValueError("Pow undefined: base bicomplex number requires a != 0 and b != 0")
+            else:
+                return BiComplexIdempotent.exp(exp * BiComplexIdempotent.log(self))
+        elif isinstance(exp, BiComplex):
+            Zexp = exp.to_idempotent()
+            return self**Zexp
+        else:
+            return NotImplemented
+    
+    def __rpow__(self: 'BiComplexIdempotent', base) -> 'BiComplexIdempotent':
+        if isinstance(base, (int, float, complex)):
+            if base == 0:
+                raise ValueError("Pow undefined: base requires x != 0")
+            else:
+                Z = BiComplexIdempotent(base, base)
+                return Z**self
+        elif isinstance(base, BiComplexIdempotent):
+            return base**self
+        else:
+            return NotImplemented
+
+    def conj(self: 'BiComplexIdempotent') -> 'BiComplexIdempotent':
+        """
+        Returns the conjugate of this bicomplex number.
+
+        The conjugate of a bicomplex number (idempotent basis)
+            a * e + b * e*
+        is
+            b * e + a * e*
+
+        Returns:
+            BiComplexIdempotent: The conjugate of this bicomplex number
+        """
+        return BiComplexIdempotent(self.b, self.a)
+    
+    def norm(self: 'BiComplexIdempotent') -> complex:
+        """
+        Calculates the norm of this bicomplex number.
+        
+            a * b
+
+        Returns:
+            complex: The norm of this bicomplex number
+        """
+        return self.a * self.b
+
+    def inverse(self: 'BiComplexIdempotent') -> 'BiComplexIdempotent':
+        """
+        Calculates the inverse of this bicomplex number.
+
+            1 / a * e + 1 / b * e*
+        
+        Returns:
+            BiComplexIdempotent: The inverse of this bicomplex number
+        """
+        return BiComplexIdempotent(1 / self.a, 1 / self.b)
+
+    def to_bicomplex(self: 'BiComplexIdempotent') -> 'BiComplex':
+        """
+        Converts this bicomplex number from the idempotent basis to the canonical basis.
+        
+            a * e + b * e*
+        becomes
+            x + y * j
+        
+        with
+            x = 1 / 2 * (a + b)
+        and
+            y = 1 / 2i * (a - b)
+        
+        Returns:
+            BiComplex: The same bicomplex number but in the canonical basis
+        """
+        return BiComplex(.5 * (self.a + self.b), -.5j * (self.a - self.b))
+
+    @staticmethod
+    def E() -> 'BiComplexIdempotent':
+        """
+        Returns
+            1 * e + 0 * e*
+
+        Returns:
+            BiComplexIdempotent: e
+        """
+        return BiComplexIdempotent(1, 0)
+    
+    @staticmethod
+    def E2() -> 'BiComplexIdempotent':
+        """
+        Returns
+            0 * e + 1 * e*
+
+        Returns:
+            BiComplexIdempotent: e*
+        """
+        return BiComplexIdempotent(0, 1)
+    
+    @staticmethod
+    def exp(Z: 'BiComplexIdempotent') -> 'BiComplexIdempotent':
+        """
+        Calculates e to the power of a bicomplex number.
+
+            e^(a * e + b * e*) = e^a * e + e^b * e*
+                
+        Parameters:
+            Z (BiComplexIdempotent): The bicomplex number in its idempotent (diagonal) basis
+        
+        Returns:
+            BiComplexIdempotent: e raised to the power of the bicomplex number
+        """
+        return BiComplexIdempotent(cm.exp(Z.a), cm.exp(Z.b))
+    
+    @staticmethod
+    def log(Z: 'BiComplexIdempotent') -> 'BiComplexIdempotent':
+        """
+        Calculates the logarithm of a bicomplex number.
+        
+            log(a * e + b * e*) = log(a) * e + log(b) * e*
+
+        Which is only defined when a != 0 and b != 0.
+        
+        Parameters:
+            Z (BiComplexIdempotent): The bicomplex number in its idempotent (diagonal) basis
+
+        Returns:
+            BiComplexIdempotent: The logarithm of the bicomplex number
+        """
+        if Z.a == 0 or Z.b == 0:
+            raise ValueError("Log undefined: requires a != 0 and b != 0")
+        else:
+            return BiComplexIdempotent(cm.log(Z.a), cm.log(Z.b))
+    
+    @staticmethod
+    def sqrt(Z: 'BiComplexIdempotent') -> 'BiComplexIdempotent':
+        """
+        Calculates the square root of a bicomplex number.
+
+            sqrt(a * e + b * e*) = sqrt(a) * e + sqrt(b) * e*
+        
+        Parameters:
+            Z (BiComplexIdempotent): The bicomplex number in its idempotent (diagonal) basis
+        
+        Returns:
+            BiComplexIdempotent: The square root of the bicomplex number
+        """
+        return BiComplexIdempotent(cm.sqrt(Z.a), cm.sqrt(Z.b))
+    
+    @staticmethod
+    def root(n: int, Z: 'BiComplexIdempotent') -> 'BiComplexIdempotent':
+        """
+        Calculates the n-th root of a bicomplex number.
+
+            root(n, Z) = exp((1 / n) * log(Z))
+        
+        Which is only defined when Z = 0 or a != 0 and b != 0.
+
+        Expects n > 0.
+        
+        Parameters:
+            Z (BiComplexIdempotent): The bicomplex number in its idempotent (diagonal) basis
+        
+        Returns:
+            BiComplexIdempotent: The n-th root of the bicomplex number
+        """
+        if Z == 0:
+            return BiComplexIdempotent(0, 0)
+        
+        if n <= 0:
+            raise ValueError("Root: expected n > 0")
+        elif n == 1:
+            return Z
+        else:
+            if Z.a == 0 or Z.b == 0:
+                raise ValueError("Root undefined: requires a != 0 and b != 0")
+            else:
+                return BiComplexIdempotent.exp((1 / n) * BiComplexIdempotent.log(Z))
 
 class Quat:
     """
