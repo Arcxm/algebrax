@@ -4708,3 +4708,311 @@ class DualSplitQuat:
             DualSplitQuat: The dual split-quaternion that applies the Lorentz transformation and translation
         """
         return DualSplitQuat(lor, .5 * trans * lor)
+
+class Grassmann:
+    """
+    A class representing a grassmann number G(2) with complex coefficients.
+
+    A grassmann number is a number of the form
+        a + b * θ1 + c * θ2 + d * (θ1 * θ2)
+    with a, b, c, d in C and θ1^2 = θ2^2 = (θ1 * θ2)^2 = 0 and θ1 * θ2 = -θ2 * θ1.
+
+    Attributes:
+        a (complex): scalar component
+        b (complex): coefficient of θ1
+        c (complex): coefficient of θ2
+        d (complex): coefficient of (θ1 * θ2)
+    """
+
+    def __init__(self: 'Grassmann', a: complex, b: complex, c: complex, d: complex) -> 'Grassmann':
+        """
+        Initializes a new grassmann number with the given components.
+
+        Parameters:
+            a (complex): scalar component
+            b (complex): coefficient of θ1
+            c (complex): coefficient of θ2
+            d (complex): coefficient of (θ1 * θ2)
+        
+        Returns:
+            Grassmann: The new grassmann number
+        """
+        self.a = a
+        self.b = b
+        self.c = c
+        self.d = d
+    
+    def __str__(self: 'Grassmann') -> str:
+        return f"({self.a}, {self.b}, {self.c}, {self.d})"
+    
+    def __repr__(self: 'Grassmann') -> str:
+        return f"Grassmann({self.a}, {self.b}, {self.c}, {self.d})"
+    
+    def __eq__(self: 'Grassmann', rhs) -> bool:
+        if isinstance(rhs, (int, float, complex)):
+            return (self.a == rhs and self.b == 0 and self.c == 0 and self.d == 0)
+        elif isinstance(rhs, Grassmann):
+            return (self.a == rhs.a and self.b == rhs.b and self.c == rhs.c and self.d == rhs.d)
+        else:
+            return NotImplemented
+    
+    def __ne__(self: 'Grassmann', rhs) -> bool:
+        eq = self.__eq__(rhs)
+        return NotImplemented if eq is NotImplemented else not eq
+    
+    def __abs__(self: 'Grassmann') -> complex:
+        return self.norm()
+
+    def __neg__(self: 'Grassmann') -> 'Grassmann':
+        return Grassmann(-self.a, -self.b, -self.c, -self.d)
+    
+    def __add__(self: 'Grassmann', rhs) -> 'Grassmann':
+        if isinstance(rhs, (int, float, complex)):
+            return Grassmann(self.a + rhs, self.b, self.c, self.d)
+        elif isinstance(rhs, Grassmann):
+            return Grassmann(self.a + rhs.a, self.b + rhs.b, self.c + rhs.c, self.d + rhs.d)
+        else:
+            return NotImplemented
+    
+    def __radd__(self: 'Grassmann', lhs) -> 'Grassmann':
+        if isinstance(lhs, (int, float, complex)):
+            return Grassmann(lhs + self.a, self.b, self.c, self.d)
+        elif isinstance(lhs, Grassmann):
+            return Grassmann(lhs.a + self.a, lhs.b + self.b, lhs.c + self.c, lhs.d + self.d)
+        else:
+            return NotImplemented
+    
+    def __sub__(self: 'Grassmann', rhs) -> 'Grassmann':
+        if isinstance(rhs, (int, float, complex)):
+            return Grassmann(self.a - rhs, self.b, self.c, self.d)
+        elif isinstance(rhs, Grassmann):
+            return Grassmann(self.a - rhs.a, self.b - rhs.b, self.c - rhs.c, self.d - rhs.d)
+        else:
+            return NotImplemented
+    
+    def __rsub__(self: 'Grassmann', lhs) -> 'Grassmann':
+        if isinstance(lhs, (int, float, complex)):
+            return Grassmann(lhs - self.a, -self.b, -self.c, -self.d)
+        elif isinstance(lhs, Grassmann):
+            return Grassmann(lhs.a - self.a, lhs.b - self.b, lhs.c - self.c, lhs.d - self.d)
+        else:
+            return NotImplemented
+    
+    def __mul__(self: 'Grassmann', rhs) -> 'Grassmann':
+        if isinstance(rhs, (int, float, complex)):
+            return Grassmann(self.a * rhs, self.b * rhs, self.c * rhs, self.d * rhs)
+        elif isinstance(rhs, Grassmann):
+            return Grassmann(
+                self.a * rhs.a,
+                self.a * rhs.b + self.b * rhs.a,
+                self.a * rhs.c + self.c * rhs.a,
+                self.a * rhs.d + self.d * rhs.a + self.b * rhs.c - self.c * rhs.b
+            )
+        else:
+            return NotImplemented
+        
+    def __rmul__(self: 'Grassmann', lhs) -> 'Grassmann':
+        if isinstance(lhs, (int, float, complex)):
+            return Grassmann(lhs * self.a, lhs * self.b, lhs * self.c, lhs * self.d)
+        elif isinstance(lhs, Grassmann):
+            return Grassmann(
+                lhs.a * self.a,
+                lhs.a * self.b + lhs.b * self.a,
+                lhs.a * self.c + lhs.c * self.a,
+                lhs.a * self.d + lhs.d * self.a + lhs.b * self.c - lhs.c * self.b
+            )
+        else:
+            return NotImplemented
+
+    # NOTE: __truediv__ and __rtruediv__ are emitted to force multiplication with the inverse which should aid with clarity
+
+    def __pow__(self: 'Grassmann', exp) -> 'Grassmann':
+        if isinstance(exp, int):
+            z = Grassmann(1, 0, 0, 0)
+
+            if exp == 0:
+                return z
+            
+            mul = self if exp > 0 else self.inverse()
+
+            for _ in range(abs(exp)):
+                z *= mul
+            return z
+        elif isinstance(exp, Grassmann):
+            if self.a == 0:
+                raise ValueError("Pow undefined: base grassmann number requires a != 0")
+            else:
+                return Grassmann.exp(exp * Grassmann.log(self))
+        else:
+            return NotImplemented
+    
+    def __rpow__(self: 'Grassmann', base) -> 'Grassmann':
+        if isinstance(base, (int, float, complex)):
+            if base == 0:
+                raise ValueError("Pow undefined: base requires x != 0")
+            else:
+                z = Grassmann(base, 0, 0, 0)
+                return z**self
+        elif isinstance(base, Grassmann):
+            return base**self
+        else:
+            return NotImplemented
+
+    def grade(self: 'Grassmann') -> 'Grassmann':
+        """
+        Returns the grade involution of this grassmann number.
+
+        This negates all terms whose grassmann basis element has an odd degree (θ1 and θ2).
+        
+        The grade involution of a grassmann number
+            a + b * θ1 + c * θ2 + d * (θ1 * θ2)
+        is
+            a - b * θ1 - c * θ2 + d * (θ1 * θ2)
+
+        Returns:
+            Grassmann: The grade involution of this grassmann number
+        """
+        return Grassmann(self.a, -self.b, -self.c, self.d)
+    
+    def norm(self: 'Grassmann') -> complex:
+        """
+        Calculates the norm of this grassmann number.
+        
+            a^2
+
+        Returns:
+            complex: The norm of this grassmann number
+        """
+        return self.a**2
+    
+    def inverse(self: 'Grassmann') -> 'Grassmann':
+        """
+        Calculates the inverse of this grassmann number.
+
+            a^-1 - b / a^2 * θ1 - c / a^2 * θ2 - d / a^2 * (θ1 * θ2)
+        
+        Returns:
+            Grassmann: The inverse of this grassmann number
+        """
+        return Grassmann(1 / self.a, -self.b / self.a**2, -self.c / self.a**2, -self.d / self.a**2)
+
+    @staticmethod
+    def T1() -> 'Grassmann':
+        """
+        Returns
+            0 + 1 * θ1 + 0 * θ2 + 0 * (θ1 * θ2)
+
+        Returns:
+            Grassmann: θ1
+        """
+        return Grassmann(0, 1, 0, 0)
+    
+    @staticmethod
+    def T2() -> 'Grassmann':
+        """
+        Returns
+            0 + 0 * θ1 + 1 * θ2 + 0 * (θ1 * θ2)
+
+        Returns:
+            Grassmann: θ2
+        """
+        return Grassmann(0, 0, 1, 0)
+    
+    @staticmethod
+    def T1T2() -> 'Grassmann':
+        """
+        Returns
+            0 + 0 * θ1 + 0 * θ2 + 1 * (θ1 * θ2)
+
+        Returns:
+            Grassmann: (θ1 * θ2)
+        """
+        return Grassmann(0, 0, 0, 1)
+
+    @staticmethod
+    def exp(z: 'Grassmann') -> 'Grassmann':
+        """
+        Calculates e to the power of a grassmann number.
+
+            e^(a + b * θ1 + c * θ2 + d * (θ1 * θ2)) = e^a * (1 + b * θ1 + c * θ2 + d * (θ1 * θ2))
+        
+        Parameters:
+            z (Grassmann): The grassmann number
+        
+        Returns:
+            Grassmann: e raised to the power of the grassmann number
+        """
+        return cm.exp(z.a) * Grassmann(1, z.b, z.c, z.d)
+
+    @staticmethod
+    def log(z: 'Grassmann') -> 'Grassmann':
+        """
+        Calculates the logarithm of a grassmann number.
+        
+            log(a + b * θ1 + c * θ2 + d * (θ1 * θ2)) = log(a) + (b / a) * θ1 + (c / a) * θ2 + (d / a) * (θ1 * θ2)
+
+        Which is only defined when a != 0.
+        
+        Parameters:
+            z (Grassmann): The grassmann number
+
+        Returns:
+            Grassmann: The logarithm of the grassmann number
+        """
+        if z.a == 0:
+            raise ValueError("Log undefined: requires a != 0")
+        else:
+            return cm.log(z.a) + Grassmann(0, z.b, z.c, z.d) * (1 / z.a)
+    
+    @staticmethod
+    def sqrt(z: 'Grassmann') -> 'Grassmann':
+        """
+        Calculates the square root of a grassmann number.
+
+            sqrt(z) = exp((1 / 2) * log(z))
+        
+        Which is only defined when z = 0 or a != 0.
+        
+        Parameters:
+            z (Grassmann): The grassmann number
+        
+        Returns:
+            Grassmann: The square root of the grassmann number
+        """
+        if z == 0:
+            return Grassmann(0, 0, 0, 0)
+
+        if z.a == 0:
+            raise ValueError("Sqrt undefined: requires a != 0")
+        else:
+            return Grassmann.exp(.5 * Grassmann.log(z))
+    
+    @staticmethod
+    def root(n: int, z: 'Grassmann') -> 'Grassmann':
+        """
+        Calculates the n-th root of a grassmann number.
+
+            root(n, z) = exp((1 / n) * log(z))
+        
+        Which is only defined when z = 0 or a != 0.
+
+        Expects n > 0.
+        
+        Parameters:
+            z (Grassmann): The grassmann number
+        
+        Returns:
+            Grassmann: The n-th root of the grassmann number
+        """
+        if z == 0:
+            return Grassmann(0, 0, 0, 0)
+
+        if n <= 0:
+            raise ValueError("Root: expected n > 0")
+        elif n == 1:
+            return z
+        else:
+            if z.a == 0:
+                raise ValueError("Root undefined: requires a != 0")
+            else:
+                return Grassmann.exp((1 / n) * Grassmann.log(z))

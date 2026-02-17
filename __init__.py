@@ -5,3 +5,4 @@ from .quat import Vec3, Quat, DualQuat
 from .split import SplitComplex, SplitComplexIdempotent
 from .split_quat import SplitQuat, DualSplitQuat
 from .bicomplex import BiComplex, BiComplexIdempotent
+from .grassmann import Grassmann

@@ -19,7 +19,7 @@ Also see the Docstrings in the code itself as they contain the formulas used and
 | --- | --- |
 | 2D | [Dual numbers](Documentation/Duals.md), [Split-complex (including idempotent basis)](Documentation/SplitComplex+SplitComplexIdempotent.md) |
 | 3D | [Vec3 (utility for quaternions)](Documentation/Vec3.md) |
-| 4D | [Dual complex](Documentation/Duals.md), [Dual split-complex](Documentation/Duals.md), [HyperDual (2nd order duals)](Documentation/HyperDuals.md), BiComplex (including idempotent basis), Quaternions, Split-quaternions |
+| 4D | [Dual complex](Documentation/Duals.md), [Dual split-complex](Documentation/Duals.md), [HyperDual (2nd order duals)](Documentation/HyperDuals.md), BiComplex (including idempotent basis), Quaternions, Split-quaternions, Grassmann numbers G(2) |
 | 8D | [Complex hyperduals](Documentation/HyperDuals.md), Dual quaternions, Dual split-quaternions |
 
 Each class implements ([Common Interface Doc](Documentation/Common.md)):
@@ -36,7 +36,7 @@ Please note that non-commutative algebras do not implement `(r)truediv` and requ
 
 ## Packages
 
-This collection is split into 5 packages.
+This collection is split into 6 packages.
 
 ### dual
 
@@ -78,7 +78,11 @@ Included are the canonical and idempotent basis.
 
 Both classes support mixed arithmetic. The result will be of the type of the left-hand operand. Conversion functions `to_bicomplex` and `to_idempotent` are available as well.
 
+### grassmann
+
+The `grassmann` package contains the grassmann numbers G(2).
+
 ## TODO / Future
 
-- Documentation for `BiComplex`, `Quat`, `SplitQuat`, `DualQuat` and `DualSplitQuat`
-- More algebras (e.g. Grassmann)
+- Documentation for `BiComplex`, `Grassmann`, `Quat`, `SplitQuat`, `DualQuat` and `DualSplitQuat`
+- More algebras (e.g. Grassmann G(3))
