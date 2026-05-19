@@ -2144,6 +2144,16 @@ class BiComplex:
         return BiComplex(0, 1j)
 
     @staticmethod
+    def IJK() -> tuple['BiComplex', 'BiComplex', 'BiComplex']:
+        """
+        Returns the bicomplex generators (i, j, k).
+
+        Returns:
+            tuple[BiComplex, BiComplex, BiComplex]: The generators i, j and k as a tuple
+        """
+        return BiComplex.I(), BiComplex.J(), BiComplex.K()
+
+    @staticmethod
     def expI(x: float) -> 'BiComplex':
         """
         Calculates e to the power of i * x.
@@ -2870,6 +2880,16 @@ class Quat:
         return Quat(0, 0, 0, 1)
 
     @staticmethod
+    def IJK() -> tuple['Quat', 'Quat', 'Quat']:
+        """
+        Returns the quaternion generators (i, j, k).
+
+        Returns:
+            tuple[Quat, Quat, Quat]: The generators i, j and k as a tuple
+        """
+        return Quat.I(), Quat.J(), Quat.K()
+
+    @staticmethod
     def from_vec3(vec: Vec3) -> 'Quat':
         """
         Initializes a quaternion from a Vec3.
@@ -3247,6 +3267,16 @@ class SplitQuat:
             SplitQuat: k
         """
         return SplitQuat(0, 0, 0, 1)
+
+    @staticmethod
+    def IJK() -> tuple['SplitQuat', 'SplitQuat', 'SplitQuat']:
+        """
+        Returns the split-quaternion generators (i, j, k).
+
+        Returns:
+            tuple[SplitQuat, SplitQuat, SplitQuat]: The generators i, j and k as a tuple
+        """
+        return SplitQuat.I(), SplitQuat.J(), SplitQuat.K()
     
     @staticmethod
     def expI(x: float) -> 'SplitQuat':
