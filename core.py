@@ -3036,7 +3036,7 @@ class Quat:
             q (Quat): The quaternion with length 1 (normalized)
         
         Returns:
-            (Vec3, float): The rotation axis and angle the quaternion represents
+            tuple[Vec3, float]: The rotation axis and angle the quaternion represents
         
         Raises:
             ValueError: If the quaternion represents an identity rotation where axis choice would be arbitrary
