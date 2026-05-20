@@ -3449,6 +3449,373 @@ class SplitQuat:
             else:
                 return SplitQuat.exp((1 / n) * SplitQuat.log(q))
 
+class Oct:
+    """
+    A class representing an octonion.
+    
+    An octonion is a number of the form
+        x_0 * e_0 + x_1 * e_1 + x_2 * e_2 + x_3 * e_3 + x_4 * e_4 + x_5 * e_5 + x_6 * e_6 + x_7 * e_7
+    with coefficients in R and e_i^2 = -1 for i in [1, 7].
+
+    Note that e_0 = 1.
+
+    Attributes:
+        x_0 (float): real component
+        x_1 (float): 1st imaginary component
+        x_2 (float): 2nd imaginary component
+        x_3 (float): 3rd imaginary component
+        x_4 (float): 4th imaginary component
+        x_5 (float): 5th imaginary component
+        x_6 (float): 6th imaginary component
+        x_7 (float): 7th imaginary component
+    """
+    
+    def __init__(self: 'Oct', x_0: float, x_1: float, x_2: float, x_3: float, x_4: float, x_5: float, x_6: float, x_7: float) -> 'Oct':
+        """
+        Initializes a new octonion with the given components.
+
+        Parameters:
+            x_0 (float): real component
+            x_1 (float): 1st imaginary component
+            x_2 (float): 2nd imaginary component
+            x_3 (float): 3rd imaginary component
+            x_4 (float): 4th imaginary component
+            x_5 (float): 5th imaginary component
+            x_6 (float): 6th imaginary component
+            x_7 (float): 7th imaginary component
+        
+        Returns:
+            Oct: The new octonion
+        """
+        self.x_0 = x_0
+        self.x_1 = x_1
+        self.x_2 = x_2
+        self.x_3 = x_3
+        self.x_4 = x_4
+        self.x_5 = x_5
+        self.x_6 = x_6
+        self.x_7 = x_7
+    
+    def __str__(self: 'Oct') -> str:
+        return f"({self.x_0}, {self.x_1}, {self.x_2}, {self.x_3}, {self.x_4}, {self.x_5}, {self.x_6}, {self.x_7})"
+    
+    def __repr__(self: 'Oct') -> str:
+        return f"Oct({self.x_0}, {self.x_1}, {self.x_2}, {self.x_3}, {self.x_4}, {self.x_5}, {self.x_6}, {self.x_7})"
+
+    def __eq__(self: 'Oct', rhs) -> bool:
+        if isinstance(rhs, (int, float)):
+            return (self.x_0 == rhs and self.x_1 == 0 and self.x_2 == 0 and self.x_3 == 0 and self.x_4 == 0 and self.x_5 == 0 and self.x_6 == 0 and self.x_7 == 0)
+        elif isinstance(rhs, Oct):
+            return (self.x_0 == rhs.x_0 and self.x_1 == rhs.x_1 and self.x_2 == rhs.x_2 and self.x_3 == rhs.x_3 and self.x_4 == rhs.x_4 and self.x_5 == rhs.x_5 and self.x_6 == rhs.x_6 and self.x_7 == rhs.x_7)
+        else:
+            return NotImplemented
+    
+    def __ne__(self: 'Oct', rhs) -> bool:
+        eq = self.__eq__(rhs)
+        return NotImplemented if eq is NotImplemented else not eq
+    
+    def __abs__(self: 'Oct') -> float:
+        return self.norm()
+    
+    def __neg__(self: 'Oct') -> 'Oct':
+        return Oct(-self.x_0, -self.x_1, -self.x_2, -self.x_3, -self.x_4, -self.x_5, -self.x_6, -self.x_7)
+    
+    def __add__(self: 'Oct', rhs) -> 'Oct':
+        if isinstance(rhs, (int, float)):
+            return Oct(self.x_0 + rhs, self.x_1, self.x_2, self.x_3, self.x_4, self.x_5, self.x_6, self.x_7)
+        elif isinstance(rhs, Oct):
+            return Oct(self.x_0 + rhs.x_0, self.x_1 + rhs.x_1, self.x_2 + rhs.x_2, self.x_3 + rhs.x_3, self.x_4 + rhs.x_4, self.x_5 + rhs.x_5, self.x_6 + rhs.x_6, self.x_7 + rhs.x_7)
+        else:
+            return NotImplemented
+    
+    def __radd__(self: 'Oct', lhs) -> 'Oct':
+        return self + lhs
+    
+    def __sub__(self: 'Oct', rhs) -> 'Oct':
+        if isinstance(rhs, (int, float)):
+            return Oct(self.x_0 - rhs, self.x_1, self.x_2, self.x_3, self.x_4, self.x_5, self.x_6, self.x_7)
+        elif isinstance(rhs, Oct):
+            return Oct(self.x_0 - rhs.x_0, self.x_1 - rhs.x_1, self.x_2 - rhs.x_2, self.x_3 - rhs.x_3, self.x_4 - rhs.x_4, self.x_5 - rhs.x_5, self.x_6 - rhs.x_6, self.x_7 - rhs.x_7)
+        else:
+            return NotImplemented
+    
+    def __rsub__(self: 'Oct', lhs) -> 'Oct':
+        if isinstance(lhs, (int, float)):
+            return Oct(lhs - self.x_0, -self.x_1, -self.x_2, -self.x_3, -self.x_4, -self.x_5, -self.x_6, -self.x_7)
+        elif isinstance(lhs, Oct):
+            return Oct(lhs.x_0 - self.x_0, lhs.x_1 - self.x_1, lhs.x_2 - self.x_2, lhs.x_3 - self.x_3, lhs.x_4 - self.x_4, lhs.x_5 - self.x_5, lhs.x_6 - self.x_6, lhs.x_7 - self.x_7)
+        else:
+            return NotImplemented
+    
+    # NOTE: __mul__ is implemented but only allows multiplication with scalars
+    #       __matmul__ is implemented with the '@' operator as a reminder to the user that there is no associativity
+
+    def __mul__(self: 'Oct', scalar) -> 'Oct':
+        if isinstance(scalar, (int, float)):
+            return Oct(scalar * self.x_0, scalar * self.x_1, scalar * self.x_2, scalar * self.x_3, scalar * self.x_4, scalar * self.x_5, scalar * self.x_6, scalar * self.x_7)
+        else:
+            raise ValueError("__(r)mul__ only allows scalar multiplication, please use Oct.mul(lhs, rhs) or __(r)matmul__ for octonion multiplication")
+
+    def __rmul__(self: 'Oct', scalar) -> 'Oct':
+        if isinstance(scalar, (int, float)):
+            return Oct(scalar * self.x_0, scalar * self.x_1, scalar * self.x_2, scalar * self.x_3, scalar * self.x_4, scalar * self.x_5, scalar * self.x_6, scalar * self.x_7)
+        else:
+            raise ValueError("__(r)mul__ only allows scalar multiplication, please use Oct.mul(lhs, rhs) or __(r)matmul__ for octonion multiplication")
+
+    def __matmul__(self: 'Oct', rhs) -> 'Oct':
+        if isinstance(rhs, (int, float)):
+            return self * rhs
+        elif isinstance(rhs, Oct):
+            return Oct.mul(self, rhs)
+        else:
+            return NotImplemented
+
+    def __rmatmul__(self: 'Oct', lhs) -> 'Oct':
+        if isinstance(lhs, (int, float)):
+            return lhs * self
+        elif isinstance(lhs, Oct):
+            return Oct.mul(lhs, self)
+        else:
+            return NotImplemented
+        
+    # NOTE: __truediv__ and __rtruediv__ are emitted to force multiplication with the inverse which should aid with clarity
+
+    def __pow__(self: 'Oct', exp) -> 'Oct':
+        if isinstance(exp, int):
+            o = Oct(1, 0, 0, 0, 0, 0, 0, 0)
+
+            if exp == 0:
+                return o
+
+            mul = self if exp > 0 else self.inverse()
+
+            for _ in range(abs(exp)):
+                o = o @ mul
+            return o
+        elif isinstance(exp, Oct):
+            if self == 0:
+                raise ValueError("Pow undefined: base octonion requires o != 0")
+            else:
+                return Oct.exp(exp @ Oct.log(self))
+        else:
+            return NotImplemented
+        
+    def __rpow__(self: 'Oct', base) -> 'Oct':
+        if isinstance(base, (int, float)):
+            if base == 0:
+                raise ValueError("Pow undefined: base requires x != 0")
+            else:
+                o = Oct(base, 0, 0, 0, 0, 0, 0, 0)
+                return o**self
+        elif isinstance(base, Oct):
+            return base**self
+        else:
+            return NotImplemented
+    
+    def imag(self: 'Oct') -> 'Oct':
+        """
+        Returns the imaginary vector part as an octonion.
+
+        Returns
+            Oct: The imaginary vector part
+        """
+        return Oct(0, self.x_1, self.x_2, self.x_3, self.x_4, self.x_5, self.x_6, self.x_7)
+
+    def conj(self: 'Oct') -> 'Oct':
+        """
+        Returns the conjugate of this octonion.
+
+        The conjugate of an octonion
+            x_0 * e_0 + x_1 * e_1 + x_2 * e_2 + x_3 * e_3 + x_4 * e_4 + x_5 * e_5 + x_6 * e_6 + x_7 * e_7
+        is
+            x_0 * e_0 - x_1 * e_1 - x_2 * e_2 - x_3 * e_3 - x_4 * e_4 - x_5 * e_5 - x_6 * e_6 - x_7 * e_7
+
+        Returns:
+            Oct: The conjugate of this octonion
+        """
+        return Oct(self.x_0, -self.x_1, -self.x_2, -self.x_3, -self.x_4, -self.x_5, -self.x_6, -self.x_7)
+    
+    def norm(self: 'Oct') -> float:
+        """
+        Calculates the norm of this octonion.
+        
+            sqrt(x_0^2 + x_1^2 + x_2^2 + x_3^2 + x_4^2 + x_5^2 + x_6^2 + x_7^2)
+
+        Returns:
+            float: The norm of this octonion
+        """
+        return sqrt(self.x_0**2 + self.x_1**2 + self.x_2**2 + self.x_3**2 + self.x_4**2 + self.x_5**2 + self.x_6**2 + self.x_7**2)
+    
+    def norm_imm(self: 'Oct') -> float:
+        """
+        Calculates the norm of this octonion's imaginary vector part.
+        
+            sqrt(x_1^2 + x_2^2 + x_3^2 + x_4^2 + x_5^2 + x_6^2 + x_7^2)
+
+        Returns:
+            float: The norm of this octonion's imaginary vector part
+        """
+        return sqrt(self.x_1**2 + self.x_2**2 + self.x_3**2 + self.x_4**2 + self.x_5**2 + self.x_6**2 + self.x_7**2)
+    
+    def normalize(self: 'Oct') -> 'Oct':
+        """
+        Normalizes the octonion so that its length equals 1.
+
+        Returns:
+            Oct: The same octonion with length 1
+        """
+        return self * (1 / self.norm())
+    
+    def inverse(self: 'Oct') -> 'Oct':
+        """
+        Calculates the inverse of this octonion.
+
+            o* / |o|^2
+        
+        Returns:
+            Oct: The inverse of this octonion
+        """
+        return self.conj() * (1 / self.norm()**2)
+
+    @staticmethod
+    def mul(lhs: 'Oct', rhs: 'Oct') -> 'Oct':
+        """
+        Calculates the product of two octonions.
+        
+            lhs * rhs
+        
+        Note the order as octonions are not associative, only alternative.
+
+        You may also use the '@' operator as matmul is implemented.
+
+        Parameters:
+            lhs (Oct): The left octonion
+            rhs (Oct): The right octonion
+        
+        Returns:
+            Oct: The result of left times right
+        """
+        return Oct(
+            lhs.x_0 * rhs.x_0 - lhs.x_1 * rhs.x_1 - lhs.x_2 * rhs.x_2 - lhs.x_3 * rhs.x_3 - lhs.x_4 * rhs.x_4 - lhs.x_5 * rhs.x_5 - lhs.x_6 * rhs.x_6 - lhs.x_7 * rhs.x_7,
+            lhs.x_0 * rhs.x_1 + lhs.x_1 * rhs.x_0 + lhs.x_2 * rhs.x_3 - lhs.x_3 * rhs.x_2 + lhs.x_4 * rhs.x_5 - lhs.x_5 * rhs.x_4 - lhs.x_6 * rhs.x_7 + lhs.x_7 * rhs.x_6,
+            lhs.x_0 * rhs.x_2 - lhs.x_1 * rhs.x_3 + lhs.x_2 * rhs.x_0 + lhs.x_3 * rhs.x_1 + lhs.x_4 * rhs.x_6 + lhs.x_5 * rhs.x_7 - lhs.x_6 * rhs.x_4 - lhs.x_7 * rhs.x_5,
+            lhs.x_0 * rhs.x_3 + lhs.x_1 * rhs.x_2 - lhs.x_2 * rhs.x_1 + lhs.x_3 * rhs.x_0 + lhs.x_4 * rhs.x_7 - lhs.x_5 * rhs.x_6 + lhs.x_6 * rhs.x_5 - lhs.x_7 * rhs.x_4,
+            lhs.x_0 * rhs.x_4 - lhs.x_1 * rhs.x_5 - lhs.x_2 * rhs.x_6 - lhs.x_3 * rhs.x_7 + lhs.x_4 * rhs.x_0 + lhs.x_5 * rhs.x_1 + lhs.x_6 * rhs.x_2 + lhs.x_7 * rhs.x_3,
+            lhs.x_0 * rhs.x_5 + lhs.x_1 * rhs.x_4 - lhs.x_2 * rhs.x_7 + lhs.x_3 * rhs.x_6 - lhs.x_4 * rhs.x_1 + lhs.x_5 * rhs.x_0 - lhs.x_6 * rhs.x_3 + lhs.x_7 * rhs.x_2,
+            lhs.x_0 * rhs.x_6 + lhs.x_1 * rhs.x_7 + lhs.x_2 * rhs.x_4 - lhs.x_3 * rhs.x_5 - lhs.x_4 * rhs.x_2 + lhs.x_5 * rhs.x_3 + lhs.x_6 * rhs.x_0 - lhs.x_7 * rhs.x_1,
+            lhs.x_0 * rhs.x_7 - lhs.x_1 * rhs.x_6 + lhs.x_2 * rhs.x_5 + lhs.x_3 * rhs.x_4 - lhs.x_4 * rhs.x_3 - lhs.x_5 * rhs.x_2 + lhs.x_6 * rhs.x_1 + lhs.x_7 * rhs.x_0
+        )
+
+    @staticmethod
+    def bases() -> tuple['Oct', 'Oct', 'Oct', 'Oct', 'Oct', 'Oct', 'Oct', 'Oct']:
+        """
+        Returns the bases e_i for i in [0, 7].
+
+        Returns:
+            tuple[Oct, Oct, Oct, Oct, Oct, Oct, Oct, Oct]: e_0, e_1, e_2, e_3, e_4, e_5, e_6, e_7
+        """
+        return Oct(1, 0, 0, 0, 0, 0, 0, 0), Oct(0, 1, 0, 0, 0, 0, 0, 0), Oct(0, 0, 1, 0, 0, 0, 0, 0), Oct(0, 0, 0, 1, 0, 0, 0, 0), Oct(0, 0, 0, 0, 1, 0, 0, 0), Oct(0, 0, 0, 0, 0, 1, 0, 0), Oct(0, 0, 0, 0, 0, 0, 1, 0), Oct(0, 0, 0, 0, 0, 0, 0, 1)
+
+    @staticmethod
+    def exp(o: 'Oct') -> 'Oct':
+        """
+        Calculates e to the power of an octonion (v is the imaginary vector part).
+
+            e^o = e^x_0 * (cos(|v|) + v/|v| * sin(|v|))
+        
+        Parameters:
+            o (Oct): The octonion
+        
+        Returns:
+            Oct: e raised to the power of the octonion
+        """
+        imm_norm = o.norm_imm()
+        if imm_norm == 0:
+            return Oct(exp(o.x_0), 0, 0, 0, 0, 0, 0, 0)
+        else:
+            return exp(o.x_0) * (cos(imm_norm) + o.imag() * (1 / imm_norm) * sin(imm_norm))
+
+    @staticmethod
+    def log(o: 'Oct') -> 'Oct':
+        """
+        Calculates the logarithm of an octonion (v is the imaginary vector part).
+
+            log(o) = log(|o|) + v/|v| * atan2(|v|, x_0)
+
+        Which is only defined when o != 0.
+        
+        Parameters:
+            o (Oct): The octonion
+
+        Returns:
+            Oct: The logarithm of the octonion
+        """
+        imm_norm = o.norm_imm()
+
+        if imm_norm == 0:
+            if o.x_0 > 0:
+                return Oct(log(o.x_0), 0, 0, 0, 0, 0, 0, 0)
+            elif o.x_0 < 0:
+                # NOTE: many possible values, choose principal branch with e1-direction
+                return Oct(log(abs(o.x_0)), pi, 0, 0, 0, 0, 0, 0)
+            else:
+                raise ValueError("Log undefined: requires o != 0")
+        
+        theta = atan2(imm_norm, o.x_0) # (-pi, pi] principal value
+        return log(o.norm()) + (o.imag() * (theta / imm_norm))
+
+    @staticmethod
+    def sqrt(o: 'Oct') -> 'Oct':
+        """
+        Calculates the square root of an octonion (v is the imaginary vector part).
+
+            sqrt(o) = sqrt((|o| + x_0) / 2) + v/|v| * sqrt((|o| - x_0) / 2)
+        
+        Parameters:
+            o (Oct): The octonion
+        
+        Returns:
+            Oct: The square root of the octonion
+        """
+        imm_norm = o.norm_imm()
+
+        if imm_norm == 0:
+            if o.x_0 >= 0:
+                return Oct(sqrt(o.x_0), 0, 0, 0, 0, 0, 0, 0)
+            elif o.x_0 < 0:
+                # NOTE: many possible values, choose principal branch with e_1-direction
+                return Oct(0, sqrt(abs(o.x_0)), 0, 0, 0, 0, 0, 0)
+
+        o_norm = o.norm()
+        f = sqrt((o_norm - o.x_0) / 2)
+        v = o.imag() * (1 / imm_norm)
+        return Oct(sqrt((o_norm + o.x_0) / 2), 0, 0, 0, 0, 0, 0, 0) + f * v
+    
+    @staticmethod
+    def root(n: int, o: 'Oct') -> 'Oct':
+        """
+        Calculates the n-th root of an octonion.
+
+            root(n, o) = exp((1 / n) * log(o))
+
+        Expects n > 0.
+        
+        Parameters:
+            o (Oct): The octonion
+        
+        Returns:
+            Oct: The n-th root of the octonion
+        """
+        if o == 0:
+            return Oct(0, 0, 0, 0, 0, 0, 0, 0)
+
+        if n <= 0:
+            raise ValueError("Root: expected n > 0")
+        elif n == 1:
+            return o
+        else:
+            return Oct.exp((1 / n) @ Oct.log(o))
+
 class DualComplex:
     """
     A class representing a dual complex number.
