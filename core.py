@@ -3449,6 +3449,373 @@ class SplitQuat:
             else:
                 return SplitQuat.exp((1 / n) * SplitQuat.log(q))
 
+class HyperbolicQuat:
+    """
+    A class representing a hyperbolic quaternion.
+    
+    A hyperbolic quaternion is a number of the form
+        w + x * i + y * j + z * k
+    with w, x, y, z in R and i^2 = j^2 = k^2 = (ij)k = i(jk) = 1.
+
+    Attributes:
+        w (float): real component
+        x (float): 1st imaginary component
+        y (float): 2nd imaginary component
+        z (float): 3rd imaginary component
+    """
+
+    def __init__(self: 'HyperbolicQuat', w: float, x: float, y: float, z: float) -> 'HyperbolicQuat':
+        """
+        Initializes a new hyperbolic quaternion with the given components.
+
+        Parameters:
+            w (float): real component
+            x (float): 1st imaginary component
+            y (float): 2nd imaginary component
+            z (float): 3rd imaginary component
+        
+        Returns:
+            HyperbolicQuat: The new hyperbolic quaternion
+        """
+        self.w = w
+        self.x = x
+        self.y = y
+        self.z = z
+    
+    def __str__(self: 'HyperbolicQuat') -> str:
+        return f"({self.w}, {self.x}, {self.y}, {self.z})"
+
+    def __repr__(self: 'HyperbolicQuat') -> str:
+        return f"HyperbolicQuat({self.w}, {self.x}, {self.y}, {self.z})"
+    
+    def __eq__(self: 'HyperbolicQuat', rhs) -> bool:
+        if isinstance(rhs, (int, float)):
+            return (self.w == rhs and self.x == 0 and self.y == 0 and self.z == 0)
+        elif isinstance(rhs, HyperbolicQuat):
+            return (self.w == rhs.w and self.x == rhs.x and self.y == rhs.y and self.z == rhs.z)
+        else:
+            return NotImplemented
+
+    def __ne__(self: 'HyperbolicQuat', rhs) -> bool:
+        eq = self.__eq__(rhs)
+        return NotImplemented if eq is NotImplemented else not eq
+
+    def __abs__(self: 'HyperbolicQuat') -> float:
+        return self.norm()
+
+    def __neg__(self: 'HyperbolicQuat') -> 'HyperbolicQuat':
+        return HyperbolicQuat(-self.w, -self.x, -self.y, -self.z)
+    
+    def __add__(self: 'HyperbolicQuat', rhs) -> 'HyperbolicQuat':
+        if isinstance(rhs, (int, float)):
+            return HyperbolicQuat(self.w + rhs, self.x, self.y, self.z)
+        elif isinstance(rhs, HyperbolicQuat):
+            return HyperbolicQuat(self.w + rhs.w, self.x + rhs.x, self.y + rhs.y, self.z + rhs.z)
+        else:
+            return NotImplemented
+    
+    def __radd__(self: 'HyperbolicQuat', lhs) -> 'HyperbolicQuat':
+        if isinstance(lhs, (int, float, HyperbolicQuat)):
+            return self + lhs
+        else:
+            return NotImplemented
+    
+    def __sub__(self: 'HyperbolicQuat', rhs) -> 'HyperbolicQuat':
+        if isinstance(rhs, (int, float)):
+            return HyperbolicQuat(self.w - rhs, self.x, self.y, self.z)
+        elif isinstance(rhs, HyperbolicQuat):
+            return HyperbolicQuat(self.w - rhs.w, self.x - rhs.x, self.y - rhs.y, self.z - rhs.z)
+        else:
+            return NotImplemented
+
+    def __rsub__(self: 'HyperbolicQuat', lhs) -> 'HyperbolicQuat':
+        if isinstance(lhs, (int, float)):
+            return HyperbolicQuat(lhs - self.w, -self.x, -self.y, -self.z)
+        elif isinstance(lhs, HyperbolicQuat):
+            return HyperbolicQuat(lhs.w - self.w, lhs.x - self.x, lhs.y - self.y, lhs.z - self.z)
+        else:
+            return NotImplemented
+    
+    # NOTE: __mul__ is implemented but only allows multiplication with scalars
+    #       __matmul__ is implemented with the '@' operator as a reminder to the user that there is no associativity
+
+    def __mul__(self: 'HyperbolicQuat', scalar) -> 'HyperbolicQuat':
+        if isinstance(scalar, (int, float)):
+            return HyperbolicQuat(scalar * self.w, scalar * self.x, scalar * self.y, scalar * self.z)
+        else:
+            raise ValueError("__(r)mul__ only allows scalar multiplication, please use HyperbolicQuat.mul(lhs, rhs) or __(r)matmul__ for hyperbolic quaternion multiplication")
+
+    def __rmul__(self: 'HyperbolicQuat', scalar) -> 'HyperbolicQuat':
+        if isinstance(scalar, (int, float)):
+            return HyperbolicQuat(scalar * self.w, scalar * self.x, scalar * self.y, scalar * self.z)
+        else:
+            raise ValueError("__(r)mul__ only allows scalar multiplication, please use HyperbolicQuat.mul(lhs, rhs) or __(r)matmul__ for hyperbolic quaternion multiplication")
+
+    def __matmul__(self: 'HyperbolicQuat', rhs) -> 'HyperbolicQuat':
+        if isinstance(rhs, (int, float)):
+            return self * rhs
+        elif isinstance(rhs, HyperbolicQuat):
+            return HyperbolicQuat.mul(self, rhs)
+        else:
+            return NotImplemented
+
+    def __rmatmul__(self: 'HyperbolicQuat', lhs) -> 'HyperbolicQuat':
+        if isinstance(lhs, (int, float)):
+            return lhs * self
+        elif isinstance(lhs, HyperbolicQuat):
+            return HyperbolicQuat.mul(lhs, self)
+        else:
+            return NotImplemented
+    
+    # NOTE: __truediv__ and __rtruediv__ are emitted to force multiplication with the inverse which should aid with clarity
+
+    def __pow__(self: 'HyperbolicQuat', exp) -> 'HyperbolicQuat':
+        if isinstance(exp, int):
+            q = HyperbolicQuat(1, 0, 0, 0)
+
+            if exp == 0:
+                return q
+            
+            mul = self if exp > 0 else self.inverse()
+
+            for _ in range(abs(exp)):
+                q = q @ mul
+            return q
+        elif isinstance(exp, HyperbolicQuat):
+           if self == 0 or self.norm() <= 0:
+               raise ValueError("Pow undefined: base hyperbolic quaternion requires q != 0 and |q| > 0")
+           else:
+               return HyperbolicQuat.exp(exp @ HyperbolicQuat.log(self))
+        else:
+            return NotImplemented
+
+    def __rpow__(self: 'HyperbolicQuat', base) -> 'HyperbolicQuat':
+        if isinstance(base, (int, float)):
+            if base <= 0:
+                raise ValueError("Pow undefined: base requires x > 0")
+            else:
+                q = HyperbolicQuat(base, 0, 0, 0)
+                return q**self
+        elif isinstance(base, HyperbolicQuat):
+            return base**self
+        else:
+            return NotImplemented
+    
+    def conj(self: 'HyperbolicQuat') -> 'HyperbolicQuat':
+        """
+        Returns the conjugate of this hyperbolic quaternion.
+
+        The conjugate of a hyperbolic quaternion
+            w + x * i + y * j + z * k
+        is
+            w - x * i - y * j - z * k
+
+        Returns:
+            HyperbolicQuat: The conjugate of this hyperbolic quaternion
+        """
+        return HyperbolicQuat(self.w, -self.x, -self.y, -self.z)
+
+    def norm(self: 'HyperbolicQuat') -> float:
+        """
+        Calculates the norm of this hyperbolic quaternion.
+        
+            w^2 - x^2 - y^2 - z^2
+
+        Returns:
+            float: The norm of this hyperbolic quaternion
+        """
+        return self.w**2 - self.x**2 - self.y**2 - self.z**2
+    
+    def norm_imm(self: 'HyperbolicQuat') -> float:
+        """
+        Calculates the norm of this hyperbolic quaternion's imaginary vector part.
+        
+            -x^2 - y^2 - z^2
+
+        Returns:
+            float: The norm of this hyperbolic quaternion's imaginary vector part
+        """
+        return -self.x**2 - self.y**2 - self.z**2
+    
+    def inverse(self: 'HyperbolicQuat') -> 'HyperbolicQuat':
+        """
+        Calculates the inverse of this hyperbolic quaternion.
+
+            q* / |q|
+        
+        Returns:
+            HyperbolicQuat: The inverse of this hyperbolic quaternion
+        """
+        return self.conj() * (1 / self.norm())
+
+    @staticmethod
+    def mul(lhs: 'HyperbolicQuat', rhs: 'HyperbolicQuat') -> 'HyperbolicQuat':
+        """
+        Calculates the product of two hyperbolic quaternions.
+        
+            lhs * rhs
+        
+        Note the order as hyperbolic quaternions are neither associative nor alternative.
+
+        You may also use the '@' operator as matmul is implemented.
+
+        Parameters:
+            lhs (HyperbolicQuat): The left hyperbolic quaternion
+            rhs (HyperbolicQuat): The right hyperbolic quaternion
+        
+        Returns:
+            HyperbolicQuat: The result of left times right
+        """
+        return HyperbolicQuat(
+            lhs.w * rhs.w + lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z,
+            lhs.w * rhs.x + lhs.x * rhs.w + lhs.y * rhs.z - lhs.z * rhs.y,
+            lhs.w * rhs.y + lhs.y * rhs.w + lhs.z * rhs.x - lhs.x * rhs.z,
+            lhs.w * rhs.z + lhs.z * rhs.w + lhs.x * rhs.y - lhs.y * rhs.x
+        )
+    
+    @staticmethod
+    def I() -> 'HyperbolicQuat':
+        """
+        Returns
+            0 + 1 * i + 0 * j + 0 * k
+
+        Returns:
+            HyperbolicQuat: i
+        """
+        return HyperbolicQuat(0, 1, 0, 0)
+    
+    @staticmethod
+    def J() -> 'HyperbolicQuat':
+        """
+        Returns
+            0 + 0 * i + 1 * j + 0 * k
+
+        Returns:
+            HyperbolicQuat: j
+        """
+        return HyperbolicQuat(0, 0, 1, 0)
+    
+    @staticmethod
+    def K() -> 'HyperbolicQuat':
+        """
+        Returns
+            0 + 0 * i + 0 * j + 1 * k
+
+        Returns:
+            HyperbolicQuat: k
+        """
+        return HyperbolicQuat(0, 0, 0, 1)
+    
+    @staticmethod
+    def IJK() -> tuple['HyperbolicQuat', 'HyperbolicQuat', 'HyperbolicQuat']:
+        """
+        Returns the hyperbolic quaternion generators (i, j, k).
+
+        Returns:
+            tuple[HyperbolicQuat, HyperbolicQuat, HyperbolicQuat]: The generators i, j and k as a tuple
+        """
+        return HyperbolicQuat.I(), HyperbolicQuat.J(), HyperbolicQuat.K()
+
+    @staticmethod
+    def exp(q: 'HyperbolicQuat') -> 'HyperbolicQuat':
+        """
+        Calculates e to the power of a hyperbolic quaternion (v is the imaginary vector part).
+
+            e^q = e^w * (cosh(|v|) + v/|v| * sinh(|v|))
+        
+        Parameters:
+            q (HyperbolicQuat): The hyperbolic quaternion
+        
+        Returns:
+            HyperbolicQuat: e raised to the power of the hyperbolic quaternion
+        """
+        if q.norm_imm() == 0:
+            return HyperbolicQuat(exp(q.w), 0, 0, 0)
+        else:
+            cn = sqrt(abs(q.norm_imm()))
+            return exp(q.w) * (cosh(cn) + HyperbolicQuat(0, q.x, q.y, q.z) * (1 / cn) * sinh(cn))
+
+    @staticmethod
+    def log(q: 'HyperbolicQuat') -> 'HyperbolicQuat':
+        """
+        Calculates the logarithm of a hyperbolic quaternion (v is the imaginary vector part).
+
+            log(q) = .5 * log(|q|) + v/|v| * atanh(|v| / w)
+
+        Which is only defined when q != 0 and |q| > 0.
+        
+        Parameters:
+            q (HyperbolicQuat): The hyperbolic quaternion
+
+        Returns:
+            HyperbolicQuat: The logarithm of the hyperbolic quaternion
+        """
+        if q.norm_imm() == 0:
+            if q.w > 0:
+                return HyperbolicQuat(log(q.w), 0, 0, 0)
+            else:
+                raise ValueError("Log undefined: requires w > 0")
+        else:
+            if q.norm() > 0:
+                r = sqrt(q.x**2 + q.y**2 + q.z**2)
+                phi = atanh(r / q.w)
+                return .5 * log(q.norm()) + HyperbolicQuat(0, q.x, q.y, q.z) * (phi / r)
+            else:
+                raise ValueError("Log undefined: requires |q| > 0")
+
+    @staticmethod
+    def sqrt(q: 'HyperbolicQuat') -> 'HyperbolicQuat':
+        """
+        Calculates the square root of a hyperbolic quaternion.
+
+            sqrt(q) = exp((1 / 2) * log(q))
+        
+        Which is only defined when q = 0 or |q| > 0.
+        
+        Parameters:
+            q (HyperbolicQuat): The hyperbolic quaternion
+        
+        Returns:
+            HyperbolicQuat: The square root of the hyperbolic quaternion
+        """
+        if q == 0:
+            return HyperbolicQuat(0, 0, 0, 0)
+        
+        if q.norm() <= 0:
+            raise ValueError("Sqrt undefined: requires |q| > 0")
+        else:
+            return HyperbolicQuat.exp(.5 * HyperbolicQuat.log(q))
+
+    @staticmethod
+    def root(n: int, q: 'HyperbolicQuat') -> 'HyperbolicQuat':
+        """
+        Calculates the n-th root of a hyperbolic quaternion.
+
+            root(n, q) = exp((1 / n) * log(q))
+        
+        Which is only defined when q = 0 or |q| > 0.
+
+        Expects n > 0.
+        
+        Parameters:
+            q (HyperbolicQuat): The hyperbolic quaternion
+        
+        Returns:
+            HyperbolicQuat: The n-th root of the hyperbolic quaternion
+        """
+        if q == 0:
+            return HyperbolicQuat(0, 0, 0, 0)
+        
+        if n <= 0:
+            raise ValueError("Root: expected n > 0")
+        elif n == 1:
+            return q
+        else:
+            if q.norm() <= 0:
+                raise ValueError("Root undefined: requires |q| > 0")
+            else:
+                return HyperbolicQuat.exp((1 / n) * HyperbolicQuat.log(q))
+
 class Oct:
     """
     A class representing an octonion.

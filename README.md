@@ -19,7 +19,7 @@ Also see the Docstrings in the code itself as they contain the formulas used and
 | --- | --- |
 | 2D | [Dual numbers](Documentation/Duals.md), [Split-complex (including idempotent basis)](Documentation/SplitComplex+SplitComplexIdempotent.md) |
 | 3D | [Vec3 (utility for quaternions)](Documentation/Vec3.md) |
-| 4D | [Dual complex](Documentation/Duals.md), [Dual split-complex](Documentation/Duals.md), [HyperDual (2nd order duals)](Documentation/HyperDuals.md), BiComplex (including idempotent basis), Quaternions, Split-quaternions, Grassmann numbers G(2) |
+| 4D | [Dual complex](Documentation/Duals.md), [Dual split-complex](Documentation/Duals.md), [HyperDual (2nd order duals)](Documentation/HyperDuals.md), BiComplex (including idempotent basis), Quaternions, Split-quaternions, Hyperbolic quaternions, Grassmann numbers G(2) |
 | 8D | Octonions, [Complex hyperduals](Documentation/HyperDuals.md), Dual quaternions, Dual split-quaternions |
 
 Each class implements ([Common Interface Doc](Documentation/Common.md)):
@@ -34,11 +34,11 @@ Some classes also provide additional custom functions (e.g. `from_vec3` for quat
 
 Please note that non-commutative algebras do not implement `(r)truediv` and require multiplication with the inverse for clarity (might change in the future).
 
-Further caution is necessary for the octonions, as they are non-associative (only alternative). Therefore `(r)mul` is reserved for scalar multiplication while octonion multiplication is implemented via `Oct.mul(lhs, rhs)` and the `@` operator (`(r)matmul` is implemented). This is intended to remind the user that order and parenthesization matter.
+Further caution is necessary for the octonions (not associative, only alternative) and hyperbolic quaternions (not even alternative). For these `(r)mul` is reserved for scalar multiplication while in-algebra multiplication is implemented via `.mul(lhs, rhs)` and the `@` operator (`(r)matmul` is implemented). This is intended to remind the user that order and parenthesization matter.
 
 ## Packages
 
-This collection is split into 7 packages.
+This collection is split into 8 packages.
 
 ### dual
 
@@ -72,6 +72,10 @@ Included are the Split-quaternions and the Dual split-quaternions.
 
 Split-quaternions extend quaternions to Minkowski space, allowing representation of rotations and boosts in a relativistic context.
 
+### hyperbolic_quat
+
+The `hyperbolic_quat` package contains the hyperbolic quaternions.
+
 ### bicomplex
 
 The `bicomplex` package contains the bicomplex numbers.
@@ -90,5 +94,5 @@ The `grassmann` package contains the grassmann numbers G(2).
 
 ## TODO / Future
 
-- Documentation for `BiComplex`, `Grassmann`, `Quat`, `SplitQuat`, `DualQuat`,  `DualSplitQuat` and `Oct`
-- More algebras (e.g. Grassmann G(3))
+- Documentation for `BiComplex`, `Grassmann`, `Quat`, `SplitQuat`, `HyperbolicQuat`, `DualQuat`, `DualSplitQuat` and `Oct`
+- More algebras (e.g. Split-octonions, Grassmann G(3))
