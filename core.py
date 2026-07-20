@@ -3983,7 +3983,7 @@ class Oct:
         """
         Returns the imaginary vector part as an octonion.
 
-        Returns
+        Returns:
             Oct: The imaginary vector part
         """
         return Oct(0, self.x_1, self.x_2, self.x_3, self.x_4, self.x_5, self.x_6, self.x_7)

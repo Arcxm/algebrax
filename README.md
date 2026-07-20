@@ -98,5 +98,5 @@ The `grassmann` package contains the grassmann numbers G(2).
 
 ## TODO / Future
 
-- Documentation for `BiComplex`, `Grassmann`, `Quat`, `SplitQuat`, `HyperbolicQuat`, `DualQuat`, `DualSplitQuat` and `Oct`
+- Documentation for `BiComplex`, `Grassmann`, `Quat`, `SplitQuat`, `HyperbolicQuat`, `DualQuat`, `DualSplitQuat`, `Oct` and `HyperbolicOct`
 - More algebras (e.g. Split-octonions, Grassmann G(3))
