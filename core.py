@@ -4183,6 +4183,364 @@ class Oct:
         else:
             return Oct.exp((1 / n) @ Oct.log(o))
 
+class HyperbolicOct:
+    """
+    A class representing a hyperbolic octonion.
+    
+    A hyperbolic octonion is a number of the form
+        x_0 * e_0 + x_1 * e_1 + x_2 * e_2 + x_3 * e_3 + x_4 * e_4 + x_5 * e_5 + x_6 * e_6 + x_7 * e_7
+    with coefficients in R and e_i^2 = 1 for i in [1, 7].
+
+    Note that e_0 = 1.
+
+    Attributes:
+        x_0 (float): real component
+        x_1 (float): 1st imaginary component
+        x_2 (float): 2nd imaginary component
+        x_3 (float): 3rd imaginary component
+        x_4 (float): 4th imaginary component
+        x_5 (float): 5th imaginary component
+        x_6 (float): 6th imaginary component
+        x_7 (float): 7th imaginary component
+    """
+    
+    def __init__(self: 'HyperbolicOct', x_0: float, x_1: float, x_2: float, x_3: float, x_4: float, x_5: float, x_6: float, x_7: float) -> 'HyperbolicOct':
+        """
+        Initializes a new hyperbolic octonion with the given components.
+
+        Parameters:
+            x_0 (float): real component
+            x_1 (float): 1st imaginary component
+            x_2 (float): 2nd imaginary component
+            x_3 (float): 3rd imaginary component
+            x_4 (float): 4th imaginary component
+            x_5 (float): 5th imaginary component
+            x_6 (float): 6th imaginary component
+            x_7 (float): 7th imaginary component
+        
+        Returns:
+            HyperbolicOct: The new hyperbolic octonion
+        """
+        self.x_0 = x_0
+        self.x_1 = x_1
+        self.x_2 = x_2
+        self.x_3 = x_3
+        self.x_4 = x_4
+        self.x_5 = x_5
+        self.x_6 = x_6
+        self.x_7 = x_7
+    
+    def __str__(self: 'HyperbolicOct') -> str:
+        return f"({self.x_0}, {self.x_1}, {self.x_2}, {self.x_3}, {self.x_4}, {self.x_5}, {self.x_6}, {self.x_7})"
+    
+    def __repr__(self: 'HyperbolicOct') -> str:
+        return f"HyperbolicOct({self.x_0}, {self.x_1}, {self.x_2}, {self.x_3}, {self.x_4}, {self.x_5}, {self.x_6}, {self.x_7})"
+
+    def __eq__(self: 'HyperbolicOct', rhs) -> bool:
+        if isinstance(rhs, (int, float)):
+            return (self.x_0 == rhs and self.x_1 == 0 and self.x_2 == 0 and self.x_3 == 0 and self.x_4 == 0 and self.x_5 == 0 and self.x_6 == 0 and self.x_7 == 0)
+        elif isinstance(rhs, HyperbolicOct):
+            return (self.x_0 == rhs.x_0 and self.x_1 == rhs.x_1 and self.x_2 == rhs.x_2 and self.x_3 == rhs.x_3 and self.x_4 == rhs.x_4 and self.x_5 == rhs.x_5 and self.x_6 == rhs.x_6 and self.x_7 == rhs.x_7)
+        else:
+            return NotImplemented
+    
+    def __ne__(self: 'HyperbolicOct', rhs) -> bool:
+        eq = self.__eq__(rhs)
+        return NotImplemented if eq is NotImplemented else not eq
+    
+    def __abs__(self: 'HyperbolicOct') -> float:
+        return self.norm()
+    
+    def __neg__(self: 'HyperbolicOct') -> 'HyperbolicOct':
+        return HyperbolicOct(-self.x_0, -self.x_1, -self.x_2, -self.x_3, -self.x_4, -self.x_5, -self.x_6, -self.x_7)
+    
+    def __add__(self: 'HyperbolicOct', rhs) -> 'HyperbolicOct':
+        if isinstance(rhs, (int, float)):
+            return HyperbolicOct(self.x_0 + rhs, self.x_1, self.x_2, self.x_3, self.x_4, self.x_5, self.x_6, self.x_7)
+        elif isinstance(rhs, HyperbolicOct):
+            return HyperbolicOct(self.x_0 + rhs.x_0, self.x_1 + rhs.x_1, self.x_2 + rhs.x_2, self.x_3 + rhs.x_3, self.x_4 + rhs.x_4, self.x_5 + rhs.x_5, self.x_6 + rhs.x_6, self.x_7 + rhs.x_7)
+        else:
+            return NotImplemented
+    
+    def __radd__(self: 'HyperbolicOct', lhs) -> 'HyperbolicOct':
+        return self + lhs
+    
+    def __sub__(self: 'HyperbolicOct', rhs) -> 'HyperbolicOct':
+        if isinstance(rhs, (int, float)):
+            return HyperbolicOct(self.x_0 - rhs, self.x_1, self.x_2, self.x_3, self.x_4, self.x_5, self.x_6, self.x_7)
+        elif isinstance(rhs, HyperbolicOct):
+            return HyperbolicOct(self.x_0 - rhs.x_0, self.x_1 - rhs.x_1, self.x_2 - rhs.x_2, self.x_3 - rhs.x_3, self.x_4 - rhs.x_4, self.x_5 - rhs.x_5, self.x_6 - rhs.x_6, self.x_7 - rhs.x_7)
+        else:
+            return NotImplemented
+    
+    def __rsub__(self: 'HyperbolicOct', lhs) -> 'HyperbolicOct':
+        if isinstance(lhs, (int, float)):
+            return HyperbolicOct(lhs - self.x_0, -self.x_1, -self.x_2, -self.x_3, -self.x_4, -self.x_5, -self.x_6, -self.x_7)
+        elif isinstance(lhs, HyperbolicOct):
+            return HyperbolicOct(lhs.x_0 - self.x_0, lhs.x_1 - self.x_1, lhs.x_2 - self.x_2, lhs.x_3 - self.x_3, lhs.x_4 - self.x_4, lhs.x_5 - self.x_5, lhs.x_6 - self.x_6, lhs.x_7 - self.x_7)
+        else:
+            return NotImplemented
+    
+    # NOTE: __mul__ is implemented but only allows multiplication with scalars
+    #       __matmul__ is implemented with the '@' operator as a reminder to the user that there is no associativity
+
+    def __mul__(self: 'HyperbolicOct', scalar) -> 'HyperbolicOct':
+        if isinstance(scalar, (int, float)):
+            return HyperbolicOct(scalar * self.x_0, scalar * self.x_1, scalar * self.x_2, scalar * self.x_3, scalar * self.x_4, scalar * self.x_5, scalar * self.x_6, scalar * self.x_7)
+        else:
+            raise ValueError("__(r)mul__ only allows scalar multiplication, please use HyperbolicOct.mul(lhs, rhs) or __(r)matmul__ for hyperbolic octonion multiplication")
+
+    def __rmul__(self: 'HyperbolicOct', scalar) -> 'HyperbolicOct':
+        if isinstance(scalar, (int, float)):
+            return HyperbolicOct(scalar * self.x_0, scalar * self.x_1, scalar * self.x_2, scalar * self.x_3, scalar * self.x_4, scalar * self.x_5, scalar * self.x_6, scalar * self.x_7)
+        else:
+            raise ValueError("__(r)mul__ only allows scalar multiplication, please use HyperbolicOct.mul(lhs, rhs) or __(r)matmul__ for hyperbolic octonion multiplication")
+
+    def __matmul__(self: 'HyperbolicOct', rhs) -> 'HyperbolicOct':
+        if isinstance(rhs, (int, float)):
+            return self * rhs
+        elif isinstance(rhs, HyperbolicOct):
+            return HyperbolicOct.mul(self, rhs)
+        else:
+            return NotImplemented
+
+    def __rmatmul__(self: 'HyperbolicOct', lhs) -> 'HyperbolicOct':
+        if isinstance(lhs, (int, float)):
+            return lhs * self
+        elif isinstance(lhs, HyperbolicOct):
+            return HyperbolicOct.mul(lhs, self)
+        else:
+            return NotImplemented
+        
+    # NOTE: __truediv__ and __rtruediv__ are emitted to force multiplication with the inverse which should aid with clarity
+
+    def __pow__(self: 'HyperbolicOct', exp) -> 'HyperbolicOct':
+        if isinstance(exp, int):
+            o = HyperbolicOct(1, 0, 0, 0, 0, 0, 0, 0)
+
+            if exp == 0:
+                return o
+
+            mul = self if exp > 0 else self.inverse()
+
+            for _ in range(abs(exp)):
+                o = o @ mul
+            return o
+        elif isinstance(exp, HyperbolicOct):
+            if self == 0 or self.norm() <= 0:
+                raise ValueError("Pow undefined: base hyperbolic octonion requires o != 0 and |o| > 0")
+            else:
+                return HyperbolicOct.exp(exp @ HyperbolicOct.log(self))
+        else:
+            return NotImplemented
+        
+    def __rpow__(self: 'HyperbolicOct', base) -> 'HyperbolicOct':
+        if isinstance(base, (int, float)):
+            if base <= 0:
+                raise ValueError("Pow undefined: base requires x > 0")
+            else:
+                o = HyperbolicOct(base, 0, 0, 0, 0, 0, 0, 0)
+                return o**self
+        elif isinstance(base, HyperbolicOct):
+            return base**self
+        else:
+            return NotImplemented
+    
+    def imag(self: 'HyperbolicOct') -> 'HyperbolicOct':
+        """
+        Returns the imaginary vector part as a hyperbolic octonion.
+
+        Returns:
+            HyperbolicOct: The imaginary vector part
+        """
+        return HyperbolicOct(0, self.x_1, self.x_2, self.x_3, self.x_4, self.x_5, self.x_6, self.x_7)
+
+    def conj(self: 'HyperbolicOct') -> 'HyperbolicOct':
+        """
+        Returns the conjugate of this hyperbolic octonion.
+
+        The conjugate of a hyperbolic octonion
+            x_0 * e_0 + x_1 * e_1 + x_2 * e_2 + x_3 * e_3 + x_4 * e_4 + x_5 * e_5 + x_6 * e_6 + x_7 * e_7
+        is
+            x_0 * e_0 - x_1 * e_1 - x_2 * e_2 - x_3 * e_3 - x_4 * e_4 - x_5 * e_5 - x_6 * e_6 - x_7 * e_7
+
+        Returns:
+            HyperbolicOct: The conjugate of this hyperbolic octonion
+        """
+        return HyperbolicOct(self.x_0, -self.x_1, -self.x_2, -self.x_3, -self.x_4, -self.x_5, -self.x_6, -self.x_7)
+    
+    def norm(self: 'HyperbolicOct') -> float:
+        """
+        Calculates the norm of this hyperbolic octonion.
+        
+            x_0^2 - x_1^2 - x_2^2 - x_3^2 - x_4^2 - x_5^2 - x_6^2 - x_7^2
+
+        Returns:
+            float: The norm of this hyperbolic octonion
+        """
+        return self.x_0**2 - self.x_1**2 - self.x_2**2 - self.x_3**2 - self.x_4**2 - self.x_5**2 - self.x_6**2 - self.x_7**2
+
+    def norm_imm(self: 'HyperbolicOct') -> float:
+        """
+        Calculates the norm of this hyperbolic octonion's imaginary vector part.
+        
+            -x_1^2 - x_2^2 - x_3^2 - x_4^2 - x_5^2 - x_6^2 - x_7^2
+
+        Returns:
+            float: The norm of this hyperbolic octonion's imaginary vector part
+        """
+        return -self.x_1**2 - self.x_2**2 - self.x_3**2 - self.x_4**2 - self.x_5**2 - self.x_6**2 - self.x_7**2
+    
+    def inverse(self: 'HyperbolicOct') -> 'HyperbolicOct':
+        """
+        Calculates the inverse of this hyperbolic octonion.
+
+            o* / |o|
+        
+        Returns:
+            HyperbolicOct: The inverse of this hyperbolic octonion
+        """
+        return self.conj() * (1 / self.norm())
+
+    @staticmethod
+    def mul(lhs: 'HyperbolicOct', rhs: 'HyperbolicOct') -> 'HyperbolicOct':
+        """
+        Calculates the product of two hyperbolic octonions.
+        
+            lhs * rhs
+        
+        Note the order as hyperbolic octonions are neither associative nor alternative.
+
+        You may also use the '@' operator as matmul is implemented.
+
+        Parameters:
+            lhs (HyperbolicOct): The left hyperbolic octonion
+            rhs (HyperbolicOct): The right hyperbolic octonion
+        
+        Returns:
+            HyperbolicOct: The result of left times right
+        """
+        return HyperbolicOct(
+            lhs.x_0 * rhs.x_0 + lhs.x_1 * rhs.x_1 + lhs.x_2 * rhs.x_2 + lhs.x_3 * rhs.x_3 + lhs.x_4 * rhs.x_4 + lhs.x_5 * rhs.x_5 + lhs.x_6 * rhs.x_6 + lhs.x_7 * rhs.x_7,
+            lhs.x_0 * rhs.x_1 + lhs.x_1 * rhs.x_0 + lhs.x_2 * rhs.x_3 - lhs.x_3 * rhs.x_2 + lhs.x_4 * rhs.x_5 - lhs.x_5 * rhs.x_4 - lhs.x_6 * rhs.x_7 + lhs.x_7 * rhs.x_6,
+            lhs.x_0 * rhs.x_2 + lhs.x_2 * rhs.x_0 - lhs.x_1 * rhs.x_3 + lhs.x_3 * rhs.x_1 + lhs.x_4 * rhs.x_6 - lhs.x_6 * rhs.x_4 + lhs.x_5 * rhs.x_7 - lhs.x_7 * rhs.x_5,
+            lhs.x_0 * rhs.x_3 + lhs.x_3 * rhs.x_0 + lhs.x_1 * rhs.x_2 - lhs.x_2 * rhs.x_1 + lhs.x_4 * rhs.x_7 - lhs.x_7 * rhs.x_4 - lhs.x_5 * rhs.x_6 + lhs.x_6 * rhs.x_5,
+            lhs.x_0 * rhs.x_4 + lhs.x_4 * rhs.x_0 - lhs.x_1 * rhs.x_5 + lhs.x_5 * rhs.x_1 - lhs.x_2 * rhs.x_6 + lhs.x_6 * rhs.x_2 - lhs.x_3 * rhs.x_7 + lhs.x_7 * rhs.x_3,
+            lhs.x_0 * rhs.x_5 + lhs.x_5 * rhs.x_0 + lhs.x_1 * rhs.x_4 - lhs.x_4 * rhs.x_1 - lhs.x_2 * rhs.x_7 + lhs.x_7 * rhs.x_2 + lhs.x_3 * rhs.x_6 - lhs.x_6 * rhs.x_3,
+            lhs.x_0 * rhs.x_6 + lhs.x_6 * rhs.x_0 + lhs.x_1 * rhs.x_7 - lhs.x_7 * rhs.x_1 + lhs.x_2 * rhs.x_4 - lhs.x_4 * rhs.x_2 - lhs.x_3 * rhs.x_5 + lhs.x_5 * rhs.x_3,
+            lhs.x_0 * rhs.x_7 + lhs.x_7 * rhs.x_0 - lhs.x_1 * rhs.x_6 + lhs.x_6 * rhs.x_1 + lhs.x_2 * rhs.x_5 - lhs.x_5 * rhs.x_2 + lhs.x_3 * rhs.x_4 - lhs.x_4 * rhs.x_3
+        )
+
+    @staticmethod
+    def bases() -> tuple['HyperbolicOct', 'HyperbolicOct', 'HyperbolicOct', 'HyperbolicOct', 'HyperbolicOct', 'HyperbolicOct', 'HyperbolicOct', 'HyperbolicOct']:
+        """
+        Returns the bases e_i for i in [0, 7].
+
+        Returns:
+            tuple[HyperbolicOct, HyperbolicOct, HyperbolicOct, HyperbolicOct, HyperbolicOct, HyperbolicOct, HyperbolicOct, HyperbolicOct]: e_0, e_1, e_2, e_3, e_4, e_5, e_6, e_7
+        """
+        return HyperbolicOct(1, 0, 0, 0, 0, 0, 0, 0), HyperbolicOct(0, 1, 0, 0, 0, 0, 0, 0), HyperbolicOct(0, 0, 1, 0, 0, 0, 0, 0), HyperbolicOct(0, 0, 0, 1, 0, 0, 0, 0), HyperbolicOct(0, 0, 0, 0, 1, 0, 0, 0), HyperbolicOct(0, 0, 0, 0, 0, 1, 0, 0), HyperbolicOct(0, 0, 0, 0, 0, 0, 1, 0), HyperbolicOct(0, 0, 0, 0, 0, 0, 0, 1)
+
+    @staticmethod
+    def exp(o: 'HyperbolicOct') -> 'HyperbolicOct':
+        """
+        Calculates e to the power of a hyperbolic octonion (v is the imaginary vector part).
+
+            e^o = e^x_0 * (cosh(|v|) + v/|v| * sinh(|v|))
+        
+        Parameters:
+            o (HyperbolicOct): The hyperbolic octonion
+        
+        Returns:
+            HyperbolicOct: e raised to the power of the hyperbolic octonion
+        """
+        if o.norm_imm() == 0:
+            return HyperbolicOct(exp(o.x_0), 0, 0, 0, 0, 0, 0, 0)
+        else:
+            cn = sqrt(abs(o.norm_imm()))
+            return exp(o.x_0) * (cosh(cn) + o.imag() * (1 / cn) * sinh(cn))
+
+    @staticmethod
+    def log(o: 'HyperbolicOct') -> 'HyperbolicOct':
+        """
+        Calculates the logarithm of a hyperbolic octonion (v is the imaginary vector part).
+
+            log(q) = .5 * log(|q|) + v/|v| * atanh(|v| / w)
+
+        Which is only defined when o != 0 and |o| > 0.
+        
+        Parameters:
+            o (HyperbolicOct): The hyperbolic octonion
+
+        Returns:
+            HyperbolicOct: The logarithm of the hyperbolic octonion
+        """
+        if o.norm_imm() == 0:
+            if o.x_0 > 0:
+                return HyperbolicOct(log(o.x_0), 0, 0, 0, 0, 0, 0, 0)
+            else:
+                raise ValueError("Log undefined: requires x_0 > 0")
+        else:
+            if o.norm() > 0:
+                r = sqrt(o.x_1**2 + o.x_2**2 + o.x_3**2 + o.x_4**2 + o.x_5**2 + o.x_6**2 + o.x_7**2)
+                phi = atanh(r / o.x_0)
+                return .5 * log(o.norm()) + o.imag() * (phi / r)
+            else:
+                raise ValueError("Log undefined: requires |o| > 0")
+
+    @staticmethod
+    def sqrt(o: 'HyperbolicOct') -> 'HyperbolicOct':
+        """
+        Calculates the square root of a hyperbolic octonion.
+
+            sqrt(o) = exp((1 / 2) * log(o))
+        
+        Which is only defined when o = 0 or |o| > 0.
+        
+        Parameters:
+            o (HyperbolicOct): The hyperbolic octonion
+        
+        Returns:
+            HyperbolicOct: The square root of the hyperbolic octonion
+        """
+        if o == 0:
+            return HyperbolicOct(0, 0, 0, 0, 0, 0, 0, 0)
+        
+        if o.norm() <= 0:
+            raise ValueError("Sqrt undefined: requires |o| > 0")
+        else:
+            return HyperbolicOct.exp(.5 * HyperbolicOct.log(o))
+    
+    @staticmethod
+    def root(n: int, o: 'HyperbolicOct') -> 'HyperbolicOct':
+        """
+        Calculates the n-th root of a hyperbolic octonion.
+
+            root(n, o) = exp((1 / n) * log(o))
+        
+        Which is only defined when o = 0 or |o| > 0.
+
+        Expects n > 0.
+        
+        Parameters:
+            o (HyperbolicOct): The hyperbolic octonion
+        
+        Returns:
+            HyperbolicOct: The n-th root of the hyperbolic octonion
+        """
+        if o == 0:
+            return HyperbolicOct(0, 0, 0, 0, 0, 0, 0, 0)
+        
+        if n <= 0:
+            raise ValueError("Root: expected n > 0")
+        elif n == 1:
+            return o
+        else:
+            if o.norm() <= 0:
+                raise ValueError("Root undefined: requires |o| > 0")
+            else:
+                return HyperbolicOct.exp((1 / n) * HyperbolicOct.log(o))
+
 class DualComplex:
     """
     A class representing a dual complex number.
